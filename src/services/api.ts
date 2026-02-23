@@ -37,7 +37,7 @@ export const periodsApi = {
 
 export const membersApi = {
   getAll: () => api.get<Member[]>("/member").then((res) => res.data),
-  create: (data: MemberRequest) => api.post("/member", data),
+  create: (data: MemberRequest) => api.post("/member/create", data),
 };
 
 export const contributionsApi = {
