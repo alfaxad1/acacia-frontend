@@ -40,7 +40,7 @@ export function Contributions() {
     paymentDate: new Date().toISOString().slice(0, 16),
   });
 
-  const topFivePeriods = periods.slice(0, 5);
+  const topFivePeriods = periods.slice(0, 20);
 
   const handlePeriodSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
