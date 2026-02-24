@@ -7,7 +7,7 @@ import { ErrorMessage } from "../components/ErrorMessage";
 import { useApi } from "../hooks/useApi";
 import { contributionsApi, periodsApi, membersApi } from "../services/api";
 import { formatCurrency, formatDateTime, formatDate } from "../utils/format";
-import type { ContributionPeriod, Member } from "../types";
+import type { ContributionPeriod, Member, Role } from "../types";
 import toast, { Toaster } from "react-hot-toast";
 
 export function Contributions() {
@@ -23,6 +23,8 @@ export function Contributions() {
     ]);
     return { data: { periods: periodsRes, members: membersRes } };
   });
+
+  const role: Role = (localStorage.getItem("role") as Role) || "MEMBER";
 
   const periods: ContributionPeriod[] = apiResponse?.periods || [];
   const members: Member[] = apiResponse?.members || [];
@@ -40,7 +42,7 @@ export function Contributions() {
     paymentDate: new Date().toISOString().slice(0, 16),
   });
 
-  const topFivePeriods = periods.slice(0, 20);
+  const topFivePeriods = periods.slice(0, 5);
 
   const handlePeriodSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +104,7 @@ export function Contributions() {
     },
     {
       key: "required",
-      header: "Target",
+      header: "Amount Per Member",
       render: (p: ContributionPeriod) => (
         <span className="text-gray-600">
           {formatCurrency(p.amountRequired)}
@@ -170,21 +172,23 @@ export function Contributions() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsPeriodModalOpen(true)}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-all"
-          >
-            <Calendar size={18} />{" "}
-            <span className="hidden xs:inline">New Period</span>
-          </button>
-          <button
-            onClick={() => setIsContributionModalOpen(true)}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 active:transform active:scale-95 transition-all"
-          >
-            <Plus size={18} /> <span>Record Payment</span>
-          </button>
-        </div>
+        {role === "ADMIN" && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsPeriodModalOpen(true)}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-all"
+            >
+              <Calendar size={18} />{" "}
+              <span className="hidden xs:inline">New Period</span>
+            </button>
+            <button
+              onClick={() => setIsContributionModalOpen(true)}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 active:transform active:scale-95 transition-all"
+            >
+              <Plus size={18} /> <span>Record Payment</span>
+            </button>
+          </div>
+        )}
       </div>
       {/* 1. MOBILE CARDS (Visible only on small screens) */}
       <div className="grid grid-cols-1 gap-4 sm:hidden">
@@ -221,7 +225,7 @@ export function Contributions() {
               <div className="grid grid-cols-2 gap-4 py-2 border-y border-gray-50">
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">
-                    Target
+                    Amount Per Member
                   </p>
                   <p className="text-sm font-semibold text-gray-700">
                     {formatCurrency(p.amountRequired)}
