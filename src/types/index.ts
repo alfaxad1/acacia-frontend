@@ -3,6 +3,10 @@ export enum MemberStatus {
   INACTIVE = "INACTIVE",
   SUSPENDED = "SUSPENDED",
 }
+export enum Role {
+  MEMBER = "MEMBER",
+  ADMIN = "ADMIN",
+}
 
 export enum LoanStatus {
   PENDING = "PENDING",
@@ -67,6 +71,7 @@ export interface MemberRequest {
   email: string;
   joinDate: string;
   password?: string;
+  role: Role;
 }
 
 export interface Contribution {
@@ -93,6 +98,7 @@ export interface Member {
   email: string;
   joinDate: string;
   status: MemberStatus;
+  role: Role;
 }
 
 export interface Period {
@@ -148,4 +154,3 @@ export interface LoginResponse {
   expirationTime: number;
   userData: UserData;
 }
-
