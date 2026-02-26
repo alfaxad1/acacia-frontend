@@ -1,4 +1,4 @@
-import { LoanStatus } from "./../types/index";
+import { ApiResponse, LoanStatus } from "./../types/index";
 import axios from "axios";
 import type {
   Member,
@@ -12,6 +12,7 @@ import type {
   FineDto,
   FineRequest,
   FineStatus,
+  ExtraDto,
 } from "../types";
 import { API_URL } from "../config/constant";
 
@@ -19,18 +20,27 @@ const api = axios.create({
   baseURL: `${API_URL}`,
   headers: {
     "Content-Type": "application/json",
-  },  
+  },
 });
 
 export const dashboardApi = {
   getSummary: () => api.get<DashboardSummary>("/dashboard/summary"),
 };
 
+// export const periodsApi = {
+//   getWithContributions: () =>
+//     api
+//       .get<ContributionPeriod[]>("/contribution-period")
+//       .then((res) => res.data),
+//   create: (data: { date: string }) =>
+//     api.post("/contribution-period", data).then((res) => res.data),
+// };
+
 export const periodsApi = {
   getWithContributions: () =>
     api
-      .get<ContributionPeriod[]>("/contribution-period")
-      .then((res) => res.data),
+      .get<ApiResponse<ContributionPeriod[]>>("/contribution-period")
+      .then((res) => res.data.data),
   create: (data: { date: string }) =>
     api.post("/contribution-period", data).then((res) => res.data),
 };
@@ -59,6 +69,10 @@ export const loansApi = {
         params: { memberId: data.memberId, amount: data.amount },
       }
     ),
+  disburse: (loanId: number) =>
+    api.post("/loan/disburse", {}, { params: { loanId } }),
+  postRepayment: (loanId: string | number, amount: number) =>
+    api.post(`/loans/${loanId}/repay`, { amount }),
 };
 
 export const finesApi = {
@@ -72,4 +86,11 @@ export const finesApi = {
 export const authApi = {
   login: (email: string, password: string) =>
     api.post("/auth/login", { email, password }).then((res) => res.data),
-}
+};
+
+export const extrasApi = {
+  getExtras: (page: number, size: number, extraType: "SURPLUS" | "ARREAR") =>
+    api.get<ApiResponse<ExtraDto[]>>("/extra", {
+      params: { page, size, extraType },
+    }),
+};

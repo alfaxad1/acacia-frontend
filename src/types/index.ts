@@ -1,3 +1,4 @@
+import { Save } from "lucide-react";
 export enum MemberStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
@@ -19,8 +20,7 @@ export enum LoanStatus {
 
 export enum ExtraType {
   ARREAR = "ARREAR",
-  FINE = "FINE",
-  PENALTY = "PENALTY",
+  SURPLUS = "SURPLUS",
 }
 
 export enum ExtraStatus {
@@ -119,6 +119,7 @@ export interface Loan {
   duration: number;
   requestDate: string;
   approvedDate?: string;
+  eligibleAmount: number;
   memberNo: string;
   memberId: number;
 }
@@ -153,4 +154,27 @@ export interface LoginResponse {
   tokenType: string | null;
   expirationTime: number;
   userData: UserData;
+}
+export interface PageMetaData {
+  page: number;
+  totalPages: number;
+  totalElements: number;
+  limit: number;
+}
+
+export interface ApiResponse<T> {
+  status: number;
+  message: string;
+  data: T;
+  metaData?: PageMetaData;
+}
+
+export interface ExtraDto {
+  id: number;
+  memberName: string;
+  amount: number;
+  date: string;
+  periodDate: string;
+  extraType: ExtraType;
+  status: ExtraStatus;
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { AlertCircle, CheckCircle, Gavel, Plus } from "lucide-react";
 import { useApi } from "../hooks/useApi";
 import { finesApi, membersApi } from "../services/api";
@@ -72,7 +72,6 @@ const Fines: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <Toaster position="top-right" reverseOrder={false} />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">

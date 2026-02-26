@@ -52,6 +52,7 @@ export function Table<T extends { id: number | string }>({ columns, data, onRowC
           )}
         </tbody>
       </table>
+      
     </div>
   );
 }

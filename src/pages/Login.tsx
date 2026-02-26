@@ -20,8 +20,8 @@ export function Login() {
     try {
       await login(email, password);
       navigate("/");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err.message || "Login failed");
     } finally {
       setIsLoading(false);
     }

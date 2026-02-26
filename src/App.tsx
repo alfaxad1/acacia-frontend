@@ -9,10 +9,23 @@ import { Loans } from "./pages/Loans";
 import { Contributions } from "./pages/Contributions";
 import PendingLoans from "./pages/PendingLoans";
 import Fines from "./pages/Fines";
+import PendingDisbursement from "./pages/PendingDisbursement";
+import { Toaster } from "react-hot-toast";
+import Settings from "./pages/Settings";
+import ExtrasPage from "./pages/ExtrasPage";
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        toastOptions={{
+          className:
+            "text-sm font-medium rounded-xl border border-gray-100 shadow-lg",
+          duration: 4000,
+        }}
+      />
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -57,6 +70,26 @@ function App() {
             }
           />
           <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Settings />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/extras"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ExtrasPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/pendingLoans"
             element={
               <ProtectedRoute>
@@ -72,6 +105,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Fines />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pending-disbursements"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <PendingDisbursement />
                 </Layout>
               </ProtectedRoute>
             }

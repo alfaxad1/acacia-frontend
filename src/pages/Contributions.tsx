@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Eye, Calendar } from "lucide-react";
+import { Plus, Eye, Calendar, Loader2 } from "lucide-react";
 import { Table } from "../components/Table";
 import { Modal } from "../components/Modal";
 import { LoadingSpinner } from "../components/LoadingSpinner";
@@ -8,9 +8,12 @@ import { useApi } from "../hooks/useApi";
 import { contributionsApi, periodsApi, membersApi } from "../services/api";
 import { formatCurrency, formatDateTime, formatDate } from "../utils/format";
 import type { ContributionPeriod, Member, Role } from "../types";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export function Contributions() {
+  // const [page, setPage] = useState(0);
+  // const [totalPages, setTotalPages] = useState(1);
+
   const {
     data: apiResponse,
     loading,
@@ -159,8 +162,6 @@ export function Contributions() {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-      <Toaster position="top-right" />
-
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -324,30 +325,43 @@ export function Contributions() {
         </div>
       </Modal>
 
-      {/* Form Modals (Add Period & Contribution) - Responsive Grids */}
       <Modal
         isOpen={isPeriodModalOpen}
         onClose={() => setIsPeriodModalOpen(false)}
         title="Create Period"
       >
-        <form onSubmit={handlePeriodSubmit} className="space-y-5 p-1">
+        <form onSubmit={handlePeriodSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Starting Date
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Date
             </label>
-            <input
-              type="date"
-              className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
-              value={periodDate}
-              onChange={(e) => setPeriodDate(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <Calendar
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="date"
+                required
+                className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all"
+                value={periodDate}
+                onChange={(e) => setPeriodDate(e.target.value)}
+              />
+            </div>
           </div>
+
           <button
             disabled={submitting}
-            className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 disabled:bg-gray-300 transition-all"
+            className="w-full py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 transition-colors flex justify-center items-center gap-2"
           >
-            {submitting ? "Processing..." : "Confirm New Period"}
+            {submitting ? (
+              <>
+                <Loader2 className="animate-spin" size={18} />
+                <span>Processing...</span>
+              </>
+            ) : (
+              "Confirm New Period"
+            )}
           </button>
         </form>
       </Modal>
@@ -443,12 +457,14 @@ export function Contributions() {
               />
             </div>
           </div>
-          <button
-            disabled={submitting}
-            className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 active:scale-[0.98] transition-all disabled:bg-gray-300"
-          >
-            {submitting ? "Saving..." : "Record Payment"}
-          </button>
+          {role === "ADMIN" && (
+            <button
+              disabled={submitting}
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 active:scale-[0.98] transition-all disabled:bg-gray-300"
+            >
+              {submitting ? "Saving..." : "Record Payment"}
+            </button>
+          )}
         </form>
       </Modal>
     </div>
