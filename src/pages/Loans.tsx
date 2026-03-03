@@ -61,7 +61,7 @@ export function Loans() {
       });
 
       toast.success("Repayment recorded successfully");
-      refetch(); // Refresh data after payment
+      refetch();
       handleCloseModal();
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to process repayment");
