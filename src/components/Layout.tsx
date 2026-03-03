@@ -11,6 +11,7 @@ import {
   HandCoins,
   Settings,
   Coins,
+  CreditCard,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -20,7 +21,7 @@ interface LayoutProps {
 const navigation = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/" },
   { name: "Members", icon: Users, path: "/members" },
-  { name: "Active Loans", icon: HandCoins, path: "/loans" },
+  { name: "Loans", icon: HandCoins, path: "/loans" },
   { name: "Pending Approval", icon: Clock8, path: "/pendingLoans" },
   {
     name: "Pending Disbursement",
@@ -28,8 +29,10 @@ const navigation = [
     path: "/pending-disbursements",
   },
   { name: "Contributions", icon: Wallet, path: "/contributions" },
+  { name: "Missed Contributions", icon: Wallet, path: "/contribution-arrears" },
   { name: "Fines", icon: Gavel, path: "/fines" },
-  { name: "Extras", icon: Coins, path: "/extras" }, // Changed icon to Coins
+  { name: "Extras", icon: Coins, path: "/extras" },
+  { name: "Debits & Credits", icon: CreditCard, path: "/account-adjustments" },
   { name: "Settings", icon: Settings, path: "/settings" },
 ];
 

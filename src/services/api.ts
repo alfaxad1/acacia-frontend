@@ -13,15 +13,90 @@ import type {
   FineRequest,
   FineStatus,
   ExtraDto,
+  Deferred,
+  AccountAdjustment,
+  ContributionArrearDto,
 } from "../types";
 import { API_URL } from "../config/constant";
+import { clearAuthData, refreshAccessToken } from "./auth";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: `${API_URL}`,
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
+
+// Refresh handling state
+let isRefreshing = false;
+let failedQueue: Deferred<string>[] = [];
+
+const processQueue = (error: unknown | null, token: string | null = null) => {
+  failedQueue.forEach((deferred) => {
+    if (error) {
+      deferred.reject(error);
+    } else if (token) {
+      deferred.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// =======================
+// REQUEST INTERCEPTOR
+// =======================
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// =======================
+// RESPONSE INTERCEPTOR
+// =======================
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        console.log("Token expired trying to refresh....")
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          processQueue(null, newToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        clearAuthData();
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export const dashboardApi = {
   getSummary: () => api.get<DashboardSummary>("/dashboard/summary"),
@@ -93,4 +168,17 @@ export const extrasApi = {
     api.get<ApiResponse<ExtraDto[]>>("/extra", {
       params: { page, size, extraType },
     }),
+};
+
+export const adjustmentApi = {
+  getAll: (type: 'DEBIT' | 'CREDIT') => 
+    api.get<AccountAdjustment[]>(`/account-adjustment?type=${type}`).then((res) => res.data),
+  create: (data: AccountAdjustment) => 
+    api.post("/account-adjustment", data),
+};
+
+export const arrearsApi = {
+    getArrears: () => 
+        api.get<ApiResponse<ContributionArrearDto[]>>(`/contribution/arrears`)
+           .then((res) => res.data),
 };

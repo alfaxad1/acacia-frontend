@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { BASE_URL } from "../config/constant";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,9 @@ export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const location = useLocation();
+  const from = location.state?.from?.pathname || BASE_URL;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -19,7 +23,7 @@ export function Login() {
 
     try {
       await login(email, password);
-      navigate("/");
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message || "Login failed");
     } finally {

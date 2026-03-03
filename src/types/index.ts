@@ -1,4 +1,3 @@
-import { Save } from "lucide-react";
 export enum MemberStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
@@ -177,4 +176,32 @@ export interface ExtraDto {
   periodDate: string;
   extraType: ExtraType;
   status: ExtraStatus;
+}
+
+export interface Deferred<T> {
+  resolve : (value: T | PromiseLike<T>) => void
+  reject : (reason?: any) => void
+}
+
+export enum AdjustmentType {
+  DEBIT = 'DEBIT',
+  CREDIT = 'CREDIT'
+}
+
+export interface AccountAdjustment {
+  id?: number;
+  amount: number;
+  transactionCost: number;
+  totalCost: number;
+  date: string;
+  type: AdjustmentType;
+  description: string;
+}
+
+export interface ContributionArrearDto {
+    id: number;
+    periodDate: string;
+    memberName: string;
+    arrearAmount: number;
+    fineAmount: number;
 }

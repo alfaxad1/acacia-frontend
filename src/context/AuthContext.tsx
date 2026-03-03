@@ -41,12 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response: LoginResponse = await authApi.login(email, password);
 
-      // if (response.status !== 200) {
-      //   throw new Error("Login failed");
-      // }
-
-      console.log("Login response:", response);
-
       const accessToken = response.accessToken;
 
       if (accessToken) {
@@ -59,8 +53,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("role", response.userData.role);
         localStorage.setItem("userName", response.userData.name);
         localStorage.setItem("userEmail", response.userData.email);
-
-        //navigate(from, { replace: true });
       } else {
         throw new Error("No token received");
       }

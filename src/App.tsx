@@ -13,6 +13,8 @@ import PendingDisbursement from "./pages/PendingDisbursement";
 import { Toaster } from "react-hot-toast";
 import Settings from "./pages/Settings";
 import ExtrasPage from "./pages/ExtrasPage";
+import ContributionArrears from "./pages/ContributionArrears";
+import AdjustmentDashboard from "./pages/AdjustmentManager";
 
 function App() {
   return (
@@ -115,6 +117,26 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <PendingDisbursement />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contribution-arrears"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ContributionArrears />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account-adjustments"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AdjustmentDashboard />
                 </Layout>
               </ProtectedRoute>
             }
