@@ -4,6 +4,7 @@ import { API_URL } from "../config/constant";
 
 export const refreshAccessToken = async () => {
   try {
+    console.log("Starting to refresh....");
     const response = await axios.post(
       `${API_URL}/auth/refresh`,
       {},

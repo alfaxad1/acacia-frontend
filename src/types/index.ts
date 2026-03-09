@@ -1,3 +1,4 @@
+import { PersonalStats } from "./index";
 export enum MemberStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
@@ -47,8 +48,17 @@ export interface DashboardSummary {
   saccoBalance: number;
   totalLoansIssued: number;
   activeLoans: number;
-  membersWithArrears: number;
-  weeklyComplianceRate: number;
+  availableLoanAmount: number;
+  personalStats: PersonalStats;
+}
+
+export interface PersonalStats {
+  totalFinesAmount: number;
+  numberOfFines: number;
+  totalLoanAmount: number;
+  numberOfLoans: number;
+  missedContributionsAmount: number;
+  numberOfMissedContributions: number;
 }
 
 export interface LoanRequest {
@@ -179,13 +189,13 @@ export interface ExtraDto {
 }
 
 export interface Deferred<T> {
-  resolve : (value: T | PromiseLike<T>) => void
-  reject : (reason?: any) => void
+  resolve: (value: T | PromiseLike<T>) => void;
+  reject: (reason?: any) => void;
 }
 
 export enum AdjustmentType {
-  DEBIT = 'DEBIT',
-  CREDIT = 'CREDIT'
+  DEBIT = "DEBIT",
+  CREDIT = "CREDIT",
 }
 
 export interface AccountAdjustment {
@@ -199,9 +209,9 @@ export interface AccountAdjustment {
 }
 
 export interface ContributionArrearDto {
-    id: number;
-    periodDate: string;
-    memberName: string;
-    arrearAmount: number;
-    fineAmount: number;
+  id: number;
+  periodDate: string;
+  memberName: string;
+  arrearAmount: number;
+  fineAmount: number;
 }

@@ -77,7 +77,6 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        console.log("Token expired trying to refresh....")
         const newToken = await refreshAccessToken();
         if (newToken) {
           processQueue(null, newToken);
@@ -99,17 +98,8 @@ api.interceptors.response.use(
 );
 
 export const dashboardApi = {
-  getSummary: () => api.get<DashboardSummary>("/dashboard/summary"),
+  getSummary: (memberId : number) => api.get<DashboardSummary>("/dashboard/summary",  { params: { memberId } }),
 };
-
-// export const periodsApi = {
-//   getWithContributions: () =>
-//     api
-//       .get<ContributionPeriod[]>("/contribution-period")
-//       .then((res) => res.data),
-//   create: (data: { date: string }) =>
-//     api.post("/contribution-period", data).then((res) => res.data),
-// };
 
 export const periodsApi = {
   getWithContributions: () =>

@@ -3,12 +3,11 @@ import { Table } from "../components/Table";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { useApi } from "../hooks/useApi";
-import { loansApi } from "../services/api";
+import { api, loansApi } from "../services/api";
 import { formatCurrency, formatDate, getStatusColor } from "../utils/format";
 import { LoanStatus, type Loan } from "../types";
 import { Banknote, X, Loader2, CheckCircle2, Clock } from "lucide-react";
 import { toast } from "react-hot-toast";
-import axios from "axios";
 import { API_URL } from "../config/constant";
 
 export function Loans() {
@@ -31,7 +30,7 @@ export function Loans() {
   useEffect(() => {
     refetch();
     // We only want this to run when activeTab changes.
-    // If refetch is not memoized in the hook, including it here might cause 
+    // If refetch is not memoized in the hook, including it here might cause
     // a loop, so we only track activeTab.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -55,7 +54,7 @@ export function Loans() {
 
     setIsSubmitting(true);
     try {
-      await axios.post(`${API_URL}/loan/repay`, {
+      await api.post(`${API_URL}/loan/repay`, {
         loanId: selectedLoan.id,
         amount: Number(repayAmount),
       });
@@ -232,25 +231,41 @@ export function Loans() {
                 <div className="p-2 bg-green-100 text-green-600 rounded-lg">
                   <Banknote size={20} />
                 </div>
-                <h3 className="font-bold text-gray-900 text-lg">Record Repayment</h3>
+                <h3 className="font-bold text-gray-900 text-lg">
+                  Record Repayment
+                </h3>
               </div>
-              <button onClick={handleCloseModal} className="p-2 hover:bg-gray-200 rounded-full">
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-gray-200 rounded-full"
+              >
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleRepaySubmit} className="p-6 space-y-5">
               <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100">
-                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Target Account</p>
-                <p className="font-black text-blue-900 text-lg">{selectedLoan.memberName}</p>
+                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">
+                  Target Account
+                </p>
+                <p className="font-black text-blue-900 text-lg">
+                  {selectedLoan.memberName}
+                </p>
                 <div className="mt-3 pt-3 border-t border-blue-100 flex justify-between items-center">
-                  <span className="text-xs font-bold text-blue-700">Outstanding Balance:</span>
+                  <span className="text-xs font-bold text-blue-700">
+                    Outstanding Balance:
+                  </span>
                   <span className="text-lg font-black text-blue-900 font-mono">
-                    {formatCurrency((selectedLoan.approvedAmount || 0) - (selectedLoan.paidAmount || 0))}
+                    {formatCurrency(
+                      (selectedLoan.approvedAmount || 0) -
+                        (selectedLoan.paidAmount || 0)
+                    )}
                   </span>
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Payment Amount (KSH)</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                  Payment Amount (KSH)
+                </label>
                 <input
                   autoFocus
                   type="number"
@@ -263,9 +278,23 @@ export function Loans() {
                 />
               </div>
               <div className="flex gap-4 pt-2">
-                <button type="button" onClick={handleCloseModal} className="flex-1 py-4 font-bold text-gray-500 hover:bg-gray-100 rounded-2xl transition-all">Cancel</button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 transition-all active:scale-95">
-                  {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : "Record Payment"}
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="flex-1 py-4 font-bold text-gray-500 hover:bg-gray-100 rounded-2xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 transition-all active:scale-95"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="animate-spin" size={20} />
+                  ) : (
+                    "Record Payment"
+                  )}
                 </button>
               </div>
             </form>
