@@ -51,7 +51,7 @@ export function Dashboard() {
         />
         <StatCard
           title="Loanable Amount"
-          value={summary.availableLoanAmount}
+          value={formatCurrency(summary.availableLoanAmount)}
           icon={AlertTriangle}
           iconColor="text-red-600"
         />

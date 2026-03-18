@@ -11,7 +11,7 @@ import axios from "axios";
 import { API_URL } from "../config/constant";
 
 const Settings = () => {
-  const [loading, setLoading] = useState<string | null>(null); // Track which field is saving
+  const [loading, setLoading] = useState<string | null>(null); 
   const [editingField, setEditingField] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({
     contributionDay: "MONDAY",
@@ -36,6 +36,7 @@ const Settings = () => {
         const response = await axios.get(url);
         if (response.data) setFormData(response.data);
       } catch (error) {
+        console.error("Error: ",error)
         toast.error("Failed to load settings");
       }
     };
