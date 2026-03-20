@@ -29,14 +29,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeAuth = () => {
       const token = localStorage.getItem("accessToken");
       const storedUser = localStorage.getItem("userData");
+      const expirationTime = localStorage.getItem("expirationTime");
 
-      if (token && storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-          setIsAuthenticated(true);
-        } catch (e) {
-          console.log(e);
+      if (token && storedUser && expirationTime) {
+        const currentTime = Date.now();
+        if (currentTime > parseInt(expirationTime)) {
+          console.warn("Token expired, logging out...");
           logout();
+        } else {
+          try {
+            setUser(JSON.parse(storedUser));
+            setIsAuthenticated(true);
+          } catch (e) {
+            logout();
+          }
         }
       }
       setLoading(false);

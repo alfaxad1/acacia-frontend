@@ -13,12 +13,10 @@ import type {
   FineRequest,
   FineStatus,
   ExtraDto,
-  Deferred,
   AccountAdjustment,
   ContributionArrearDto,
 } from "../types";
 import { API_URL } from "../config/constant";
-import { clearAuthData, refreshAccessToken } from "./auth";
 
 export const api = axios.create({
   baseURL: `${API_URL}`,
@@ -29,19 +27,19 @@ export const api = axios.create({
 });
 
 // Refresh handling state
-let isRefreshing = false;
-let failedQueue: Deferred<string>[] = [];
+// let isRefreshing = false;
+// let failedQueue: Deferred<string>[] = [];
 
-const processQueue = (error: unknown | null, token: string | null = null) => {
-  failedQueue.forEach((deferred) => {
-    if (error) {
-      deferred.reject(error);
-    } else if (token) {
-      deferred.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
+// const processQueue = (error: unknown | null, token: string | null = null) => {
+//   failedQueue.forEach((deferred) => {
+//     if (error) {
+//       deferred.reject(error);
+//     } else if (token) {
+//       deferred.resolve(token);
+//     }
+//   });
+//   failedQueue = [];
+// };
 
 // =======================
 // REQUEST INTERCEPTOR
@@ -57,48 +55,65 @@ api.interceptors.request.use((config) => {
 // =======================
 // RESPONSE INTERCEPTOR
 // =======================
+// api.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     const originalRequest = error.config;
+//     if (error.response?.status === 401 && !originalRequest._retry) {
+//       if (isRefreshing) {
+//         return new Promise((resolve, reject) => {
+//           failedQueue.push({ resolve, reject });
+//         })
+//           .then((token) => {
+//             originalRequest.headers.Authorization = `Bearer ${token}`;
+//             return api(originalRequest);
+//           })
+//           .catch((err) => Promise.reject(err));
+//       }
+
+//       originalRequest._retry = true;
+//       isRefreshing = true;
+
+//       try {
+//         const newToken = await refreshAccessToken();
+//         if (newToken) {
+//           processQueue(null, newToken);
+//           originalRequest.headers.Authorization = `Bearer ${newToken}`;
+//           return api(originalRequest);
+//         }
+//       } catch (refreshError) {
+//         processQueue(refreshError, null);
+//         clearAuthData();
+//         window.location.href = "/login";
+//         return Promise.reject(refreshError);
+//       } finally {
+//         isRefreshing = false;
+//       }
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-          processQueue(null, newToken);
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        clearAuthData();
-        window.location.href = "/login";
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+  (error) => {
+    // If backend returns 401 or the JWT exception causes a failure
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403)
+    ) {
+      console.error("Session expired. Redirecting to login...");
+      localStorage.clear();
+      window.location.href = "/login"; // Force redirect
     }
-
     return Promise.reject(error);
-  }
+  },
 );
 
 export const dashboardApi = {
-  getSummary: (memberId : number) => api.get<DashboardSummary>("/dashboard/summary",  { params: { memberId } }),
+  getSummary: (memberId: number) =>
+    api.get<DashboardSummary>("/dashboard/summary", { params: { memberId } }),
 };
 
 export const periodsApi = {
@@ -132,7 +147,7 @@ export const loansApi = {
       {},
       {
         params: { memberId: data.memberId, amount: data.amount },
-      }
+      },
     ),
   disburse: (loanId: number) =>
     api.post("/loan/disburse", {}, { params: { loanId } }),
@@ -161,14 +176,16 @@ export const extrasApi = {
 };
 
 export const adjustmentApi = {
-  getAll: (type: 'DEBIT' | 'CREDIT') => 
-    api.get<AccountAdjustment[]>(`/account-adjustment?type=${type}`).then((res) => res.data),
-  create: (data: AccountAdjustment) => 
-    api.post("/account-adjustment", data),
+  getAll: (type: "DEBIT" | "CREDIT") =>
+    api
+      .get<AccountAdjustment[]>(`/account-adjustment?type=${type}`)
+      .then((res) => res.data),
+  create: (data: AccountAdjustment) => api.post("/account-adjustment", data),
 };
 
 export const arrearsApi = {
-    getArrears: () => 
-        api.get<ApiResponse<ContributionArrearDto[]>>(`/contribution/arrears`)
-           .then((res) => res.data),
+  getArrears: () =>
+    api
+      .get<ApiResponse<ContributionArrearDto[]>>(`/contribution/arrears`)
+      .then((res) => res.data),
 };
