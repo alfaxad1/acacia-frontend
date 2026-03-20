@@ -17,11 +17,12 @@ import toast from "react-hot-toast";
 const AdjustmentDashboard = () => {
   const [adjustments, setAdjustments] = useState<AccountAdjustment[]>([]);
   const [activeType, setActiveType] = useState<AdjustmentType>(
-    AdjustmentType.CREDIT
+    AdjustmentType.CREDIT,
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAdjustment, setSelectedAdjustment] = useState<AccountAdjustment | null>(null);
+  const [selectedAdjustment, setSelectedAdjustment] =
+    useState<AccountAdjustment | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -73,11 +74,11 @@ const AdjustmentDashboard = () => {
   };
 
   const totalCredits = adjustments
-    .filter(a => a.type === AdjustmentType.CREDIT)
+    .filter((a) => a.type === AdjustmentType.CREDIT)
     .reduce((sum, a) => sum + a.totalCost, 0);
-  
+
   const totalDebits = adjustments
-    .filter(a => a.type === AdjustmentType.DEBIT)
+    .filter((a) => a.type === AdjustmentType.DEBIT)
     .reduce((sum, a) => sum + a.totalCost, 0);
 
   return (
@@ -95,14 +96,14 @@ const AdjustmentDashboard = () => {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <button className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex-1 sm:flex-none">
-              <Download size={14} className="sm:w-4 sm:h-4" /> 
+              <Download size={14} className="sm:w-4 sm:h-4" />
               <span className="hidden xs:inline">Export</span>
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm transition-all flex-1 sm:flex-none"
             >
-              <Plus size={14} className="sm:w-4 sm:h-4" /> 
+              <Plus size={14} className="sm:w-4 sm:h-4" />
               <span className="hidden xs:inline">Add Adjustment</span>
               <span className="xs:hidden">Add</span>
             </button>
@@ -145,16 +146,23 @@ const AdjustmentDashboard = () => {
         {/* Mobile View: Card Layout */}
         <div className="block md:hidden space-y-3">
           {isLoading ? (
-            Array(3).fill(0).map((_, i) => (
-              <div key={i} className="bg-white p-4 rounded-xl shadow-sm animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-1/3 mb-3"></div>
-                <div className="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            ))
+            Array(3)
+              .fill(0)
+              .map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white p-4 rounded-xl shadow-sm animate-pulse"
+                >
+                  <div className="h-4 bg-gray-200 rounded w-1/3 mb-3"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
+                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))
           ) : adjustments.length === 0 ? (
             <div className="bg-white p-8 rounded-xl text-center">
-              <p className="text-gray-400 italic">No {activeType.toLowerCase()} adjustments found.</p>
+              <p className="text-gray-400 italic">
+                No {activeType.toLowerCase()} adjustments found.
+              </p>
             </div>
           ) : (
             adjustments.map((adj) => (
@@ -167,19 +175,26 @@ const AdjustmentDashboard = () => {
                   {/* Header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className={`p-2 rounded-lg ${
-                        adj.type === AdjustmentType.CREDIT 
-                          ? "bg-emerald-100" 
-                          : "bg-red-100"
-                      }`}>
+                      <div
+                        className={`p-2 rounded-lg ${
+                          adj.type === AdjustmentType.CREDIT
+                            ? "bg-emerald-100"
+                            : "bg-red-100"
+                        }`}
+                      >
                         {adj.type === AdjustmentType.CREDIT ? (
-                          <ArrowDownLeft size={16} className="text-emerald-600" />
+                          <ArrowDownLeft
+                            size={16}
+                            className="text-emerald-600"
+                          />
                         ) : (
                           <ArrowUpRight size={16} className="text-red-600" />
                         )}
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">{formatDate(adj.date)}</p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(adj.date)}
+                        </p>
                       </div>
                     </div>
                     <ChevronRight size={18} className="text-gray-400" />
@@ -193,13 +208,21 @@ const AdjustmentDashboard = () => {
                   {/* Amount Details */}
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <div className="bg-gray-50 p-2 rounded-lg">
-                      <p className="text-[10px] text-gray-500 mb-1">Base Amount</p>
-                      <p className="text-sm font-mono">{formatCurrency(adj.amount)}</p>
+                      <p className="text-[10px] text-gray-500 mb-1">
+                        Base Amount
+                      </p>
+                      <p className="text-sm font-mono">
+                        {formatCurrency(adj.amount)}
+                      </p>
                     </div>
                     {adj.type === AdjustmentType.CREDIT && (
                       <div className="bg-gray-50 p-2 rounded-lg">
-                        <p className="text-[10px] text-gray-500 mb-1">Transaction Fee</p>
-                        <p className="text-sm font-mono">{formatCurrency(adj.transactionCost)}</p>
+                        <p className="text-[10px] text-gray-500 mb-1">
+                          Transaction Fee
+                        </p>
+                        <p className="text-sm font-mono">
+                          {formatCurrency(adj.transactionCost)}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -207,11 +230,13 @@ const AdjustmentDashboard = () => {
                   {/* Total */}
                   <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
                     <span className="text-xs text-gray-500">Total</span>
-                    <span className={`font-bold font-mono ${
-                      adj.type === AdjustmentType.CREDIT 
-                        ? "text-emerald-600" 
-                        : "text-red-600"
-                    }`}>
+                    <span
+                      className={`font-bold font-mono ${
+                        adj.type === AdjustmentType.CREDIT
+                          ? "text-emerald-600"
+                          : "text-red-600"
+                      }`}
+                    >
                       {formatCurrency(adj.totalCost)}
                     </span>
                   </div>
@@ -302,7 +327,7 @@ const AdjustmentDashboard = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button 
+                        <button
                           onClick={() => setSelectedAdjustment(adj)}
                           className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
@@ -328,7 +353,9 @@ const AdjustmentDashboard = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900">Adjustment Details</h3>
+                <h3 className="font-semibold text-gray-900">
+                  Adjustment Details
+                </h3>
                 <button
                   onClick={() => setSelectedAdjustment(null)}
                   className="p-1 hover:bg-gray-100 rounded-full"
@@ -336,44 +363,50 @@ const AdjustmentDashboard = () => {
                   <X size={20} className="text-gray-500" />
                 </button>
               </div>
-              
+
               <div className="p-4 space-y-4">
                 {/* Type Badge */}
-                <div className={`inline-block px-3 py-1.5 rounded-lg text-xs font-bold ${
-                  selectedAdjustment.type === AdjustmentType.CREDIT
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-red-100 text-red-700"
-                }`}>
+                <div
+                  className={`inline-block px-3 py-1.5 rounded-lg text-xs font-bold ${
+                    selectedAdjustment.type === AdjustmentType.CREDIT
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
                   {selectedAdjustment.type}
                 </div>
 
                 {/* Description */}
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Description</p>
-                  <p className="text-gray-900 font-medium">{selectedAdjustment.description}</p>
+                  <p className="text-gray-900 font-medium">
+                    {selectedAdjustment.description}
+                  </p>
                 </div>
 
                 {/* Date */}
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Transaction Date</p>
-                  <p className="text-gray-900 font-medium">{formatDate(selectedAdjustment.date)}</p>
+                  <p className="text-gray-900 font-medium">
+                    {formatDate(selectedAdjustment.date)}
+                  </p>
                 </div>
 
                 {/* Financial Details */}
                 <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <DetailRow 
-                    label="Base Amount" 
-                    value={formatCurrency(selectedAdjustment.amount)} 
+                  <DetailRow
+                    label="Base Amount"
+                    value={formatCurrency(selectedAdjustment.amount)}
                   />
                   {selectedAdjustment.type === AdjustmentType.CREDIT && (
-                    <DetailRow 
-                      label="Transaction Fee" 
-                      value={formatCurrency(selectedAdjustment.transactionCost)} 
+                    <DetailRow
+                      label="Transaction Fee"
+                      value={formatCurrency(selectedAdjustment.transactionCost)}
                     />
                   )}
                   <div className="pt-2 border-t border-gray-200">
-                    <DetailRow 
-                      label="Total" 
+                    <DetailRow
+                      label="Total"
                       value={formatCurrency(selectedAdjustment.totalCost)}
                       highlight
                     />
@@ -449,7 +482,7 @@ const AdjustmentDashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-gray-500 uppercase">
-                      Base Amount (UGX)
+                      Base Amount
                     </label>
                     <input
                       type="number"
@@ -465,7 +498,7 @@ const AdjustmentDashboard = () => {
                       }
                     />
                   </div>
-                  
+
                   {activeType === AdjustmentType.CREDIT ? (
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-gray-500 uppercase">
@@ -502,9 +535,9 @@ const AdjustmentDashboard = () => {
                     Calculated Total:
                   </span>
                   <span className="text-lg font-black text-blue-900 font-mono">
-                    UGX {(activeType === AdjustmentType.CREDIT
+                    {(activeType === AdjustmentType.CREDIT
                       ? (formData.amount || 0) + (formData.transactionCost || 0)
-                      : (formData.amount || 0)
+                      : formData.amount || 0
                     ).toLocaleString()}
                   </span>
                 </div>
@@ -534,11 +567,21 @@ const AdjustmentDashboard = () => {
 };
 
 // Helper component for detail rows
-function DetailRow({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
+function DetailRow({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
   return (
     <div className="flex justify-between items-center">
       <span className="text-sm text-gray-500">{label}</span>
-      <span className={`text-sm font-medium ${highlight ? 'font-bold text-gray-900' : 'text-gray-600'}`}>
+      <span
+        className={`text-sm font-medium ${highlight ? "font-bold text-gray-900" : "text-gray-600"}`}
+      >
         {value}
       </span>
     </div>

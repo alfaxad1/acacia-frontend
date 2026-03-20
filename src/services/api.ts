@@ -137,7 +137,7 @@ export const loansApi = {
   disburse: (loanId: number) =>
     api.post("/loan/disburse", {}, { params: { loanId } }),
   postRepayment: (loanId: string | number, amount: number) =>
-    api.post(`/loans/${loanId}/repay`, { amount }),
+    api.post(`/loan/repay`, {}, { params: { loanId, amount } }),
 };
 
 export const finesApi = {

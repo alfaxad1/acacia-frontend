@@ -39,4 +39,6 @@ export const logoutUser = async () => {
 export const clearAuthData = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("expirationTime");
+  localStorage.removeItem("userData");
+  localStorage.removeItem("memberId");
 };

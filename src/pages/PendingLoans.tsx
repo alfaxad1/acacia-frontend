@@ -434,7 +434,7 @@ const PendingLoans: React.FC = () => {
         <form onSubmit={handleRequestSubmit} className="p-1 sm:p-4">
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              How much do you need? (UGX)
+              How much do you need?
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">

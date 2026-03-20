@@ -1,17 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { AlertCircle, CheckCircle, Gavel, Plus, ChevronRight } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Gavel,
+  Plus,
+  ChevronRight,
+} from "lucide-react";
 import { useApi } from "../hooks/useApi";
 import { finesApi, membersApi } from "../services/api";
 import { FineRequest, FineStatus, FineTyp, Role } from "../types";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { formatCurrency, formatDate } from "../utils/format";
+import ConfirmModal from "../components/ConfirmModal";
 
 const Fines: React.FC = () => {
   const [activeTab, setActiveTab] = useState<FineStatus>(FineStatus.UNPAID);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFine, setSelectedFine] = useState<any>(null);
+  const [fineToSettle, setFineToSettle] = useState<number | null>(null);
   const [formData, setFormData] = useState<FineRequest>({
     memberId: 0,
     type: FineTyp.LATE_MEETINGS,
@@ -72,6 +81,7 @@ const Fines: React.FC = () => {
       success: "Fine Settled!",
       error: "Failed to settle.",
     });
+    setFineToSettle(null);
     setSelectedFine(null);
     refetchFines();
   };
@@ -176,7 +186,9 @@ const Fines: React.FC = () => {
                     {fine.memberName?.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{fine.memberName}</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      {fine.memberName}
+                    </h3>
                     <p className="text-xs text-gray-500">
                       {fine.type.replace("_", " ")}
                     </p>
@@ -188,7 +200,9 @@ const Fines: React.FC = () => {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-xs text-gray-500">Amount</p>
-                  <p className="font-bold text-gray-900">{formatCurrency(fine.amount)}</p>
+                  <p className="font-bold text-gray-900">
+                    {formatCurrency(fine.amount)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Fine Date</p>
@@ -205,10 +219,7 @@ const Fines: React.FC = () => {
               {activeTab === FineStatus.UNPAID && role === "ADMIN" && (
                 <div className="mt-3 pt-3 border-t">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSettle(fine.id);
-                    }}
+                    onClick={() => setFineToSettle(fine.id)}
                     className="w-full bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
                   >
                     Settle Fine
@@ -252,7 +263,10 @@ const Fines: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {fines?.map((fine) => (
-                <tr key={fine.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={fine.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="px-6 py-4 font-medium text-gray-900">
                     {fine.memberName}
                   </td>
@@ -274,7 +288,7 @@ const Fines: React.FC = () => {
                   {activeTab === FineStatus.UNPAID && role === "ADMIN" && (
                     <td className="px-6 py-4 text-center">
                       <button
-                        onClick={() => handleSettle(fine.id)}
+                        onClick={() => setFineToSettle(fine.id)}
                         className="text-xs bg-indigo-600 text-white px-4 py-1.5 rounded-md hover:bg-indigo-700 shadow-sm"
                       >
                         Settle
@@ -320,14 +334,16 @@ const Fines: React.FC = () => {
                 <AlertCircle size={20} className="text-gray-500" />
               </button>
             </div>
-            
+
             <div className="p-4 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl">
                   {selectedFine.memberName?.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{selectedFine.memberName}</h2>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {selectedFine.memberName}
+                  </h2>
                   <p className="text-sm text-gray-500 mt-1">
                     {selectedFine.type.replace("_", " ")}
                   </p>
@@ -335,40 +351,43 @@ const Fines: React.FC = () => {
               </div>
 
               <div className="space-y-3 bg-gray-50 p-4 rounded-xl">
-                <DetailRow 
-                  label="Amount" 
-                  value={<span className="font-bold">{formatCurrency(selectedFine.amount)}</span>}
+                <DetailRow
+                  label="Amount"
+                  value={
+                    <span className="font-bold">
+                      {formatCurrency(selectedFine.amount)}
+                    </span>
+                  }
                 />
-                <DetailRow 
-                  label="Fine Date" 
-                  value={formatDate(selectedFine.date)} 
+                <DetailRow
+                  label="Fine Date"
+                  value={formatDate(selectedFine.date)}
                 />
                 {activeTab === FineStatus.PAID && selectedFine.paidDate && (
-                  <DetailRow 
-                    label="Paid Date" 
-                    value={formatDate(selectedFine.paidDate)} 
+                  <DetailRow
+                    label="Paid Date"
+                    value={formatDate(selectedFine.paidDate)}
                   />
                 )}
-                <DetailRow 
-                  label="Status" 
+                <DetailRow
+                  label="Status"
                   value={
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                      selectedFine.status === FineStatus.PAID 
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}>
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedFine.status === FineStatus.PAID
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
                       {selectedFine.status}
                     </span>
-                  } 
+                  }
                 />
               </div>
 
               {activeTab === FineStatus.UNPAID && role === "ADMIN" && (
                 <button
-                  onClick={() => {
-                    handleSettle(selectedFine.id);
-                    setSelectedFine(null);
-                  }}
+                  onClick={() => setFineToSettle(selectedFine.id)}
                   className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
                 >
                   Settle Fine
@@ -399,7 +418,7 @@ const Fines: React.FC = () => {
                 <AlertCircle size={20} className="text-gray-500" />
               </button>
             </div>
-            
+
             <form onSubmit={handleRecordFine} className="p-4 space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-1">
@@ -447,10 +466,10 @@ const Fines: React.FC = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-semibold mb-1">
-                    Amount (UGX)
+                    Amount
                   </label>
                   <input
                     type="number"
@@ -463,7 +482,6 @@ const Fines: React.FC = () => {
                         amount: Number(e.target.value),
                       })
                     }
-                    required
                     min="0"
                     step="100"
                   />
@@ -507,12 +525,26 @@ const Fines: React.FC = () => {
           </div>
         </div>
       )}
+      <ConfirmModal
+        isOpen={fineToSettle !== null}
+        title="Confirm Settlement"
+        message="Are you sure you want to mark this fine as settled? This action cannot be undone."
+        confirmText="Yes, Settle"
+        onConfirm={() => fineToSettle && handleSettle(fineToSettle)}
+        onCancel={() => setFineToSettle(null)}
+      />
     </div>
   );
 };
 
 // Helper component for detail rows
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+function DetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
     <div className="flex justify-between items-center">
       <span className="text-sm text-gray-500">{label}</span>

@@ -1,20 +1,29 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { Table } from "../components/Table";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { useApi } from "../hooks/useApi";
-import { api, loansApi } from "../services/api";
+import { loansApi } from "../services/api";
 import { formatCurrency, formatDate, getStatusColor } from "../utils/format";
 import { LoanStatus, type Loan } from "../types";
-import { Banknote, X, Loader2, CheckCircle2, Clock, ChevronRight } from "lucide-react";
+import {
+  Banknote,
+  X,
+  Loader2,
+  CheckCircle2,
+  Clock,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
-import { API_URL } from "../config/constant";
 
 export function Loans() {
   const [activeTab, setActiveTab] = useState<LoanStatus>(LoanStatus.DISBURSED);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
-  const [selectedLoanMobile, setSelectedLoanMobile] = useState<Loan | null>(null);
+  const [selectedLoanMobile, setSelectedLoanMobile] = useState<Loan | null>(
+    null,
+  );
   const [repayAmount, setRepayAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,11 +56,7 @@ export function Loans() {
 
     setIsSubmitting(true);
     try {
-      await api.post(`${API_URL}/loan/repay`, {
-        loanId: selectedLoan.id,
-        amount: Number(repayAmount),
-      });
-
+      loansApi.postRepayment(selectedLoan.id, Number(repayAmount));
       toast.success("Repayment recorded successfully");
       refetch();
       handleCloseModal();
@@ -82,13 +87,16 @@ export function Loans() {
       render: (loan: Loan) => (
         <div>
           <div className="font-bold text-gray-900">
-            {formatCurrency(loan.approvedAmount || loan.requestedAmount)}
+            {formatCurrency(loan.totalPayableAmount)}
           </div>
           <div className="text-[10px] text-gray-500 font-medium">
-            Balance:{" "}
-            {formatCurrency(
-              (loan.approvedAmount || 0) - (loan.paidAmount || 0)
-            )}
+            Requested: {formatCurrency(loan.requestedAmount)}
+          </div>
+          <div className="text-[10px] text-gray-500 font-medium">
+            Approved: {formatCurrency(loan.approvedAmount)}
+          </div>
+          <div className="text-[10px] text-gray-500 font-medium">
+            Balance: {formatCurrency(loan.balance)}
           </div>
         </div>
       ),
@@ -121,7 +129,7 @@ export function Loans() {
       render: (loan: Loan) => (
         <span
           className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${getStatusColor(
-            loan.status
+            loan.status,
           )} shadow-sm border border-black/5`}
         >
           {loan.status}
@@ -215,8 +223,12 @@ export function Loans() {
                     {loan.memberName?.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">{loan.memberName}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">{loan.memberNo}</p>
+                    <h3 className="font-bold text-gray-900">
+                      {loan.memberName}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {loan.memberNo}
+                    </p>
                   </div>
                 </div>
                 <ChevronRight size={20} className="text-gray-400" />
@@ -227,13 +239,17 @@ export function Loans() {
                 <div className="bg-gray-50 p-3 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Amount</p>
                   <p className="font-bold text-gray-900">
-                    {formatCurrency(loan.approvedAmount || loan.requestedAmount)}
+                    {formatCurrency(
+                      loan.approvedAmount || loan.requestedAmount,
+                    )}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Balance</p>
                   <p className="font-bold text-gray-900">
-                    {formatCurrency((loan.approvedAmount || 0) - (loan.paidAmount || 0))}
+                    {formatCurrency(
+                      (loan.approvedAmount || 0) - (loan.paidAmount || 0),
+                    )}
                   </p>
                 </div>
               </div>
@@ -252,7 +268,7 @@ export function Loans() {
                 </div>
                 <span
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${getStatusColor(
-                    loan.status
+                    loan.status,
                   )} shadow-sm`}
                 >
                   {loan.status}
@@ -325,7 +341,7 @@ export function Loans() {
                 <X size={20} className="text-gray-500" />
               </button>
             </div>
-            
+
             <div className="p-4 space-y-4">
               {/* Member Info */}
               <div className="flex items-center gap-4">
@@ -333,47 +349,51 @@ export function Loans() {
                   {selectedLoanMobile.memberName?.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{selectedLoanMobile.memberName}</h2>
-                  <p className="text-sm text-gray-500 mt-1">{selectedLoanMobile.memberNo}</p>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {selectedLoanMobile.memberName}
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedLoanMobile.memberNo}
+                  </p>
                 </div>
               </div>
 
               {/* Financial Details */}
               <div className="bg-gray-50 p-4 rounded-2xl space-y-3">
-                <DetailRow 
-                  label="Loan Amount" 
-                  value={formatCurrency(selectedLoanMobile.approvedAmount || selectedLoanMobile.requestedAmount)}
+                <DetailRow
+                  label="Loan Amount"
+                  value={formatCurrency(selectedLoanMobile.totalPayableAmount)}
                   highlight
                 />
-                <DetailRow 
-                  label="Paid Amount" 
-                  value={formatCurrency(selectedLoanMobile.paidAmount || 0)} 
+                <DetailRow
+                  label="Paid Amount"
+                  value={formatCurrency(selectedLoanMobile.paidAmount || 0)}
                 />
-                <DetailRow 
-                  label="Balance" 
-                  value={formatCurrency((selectedLoanMobile.approvedAmount || 0) - (selectedLoanMobile.paidAmount || 0))}
+                <DetailRow
+                  label="Balance"
+                  value={formatCurrency(selectedLoanMobile.balance)}
                   highlight
                 />
               </div>
 
               {/* Dates */}
               <div className="bg-gray-50 p-4 rounded-2xl space-y-3">
-                <DetailRow 
-                  label="Disbursed Date" 
-                  value={formatDate(selectedLoanMobile.requestDate)} 
+                <DetailRow
+                  label="Disbursed Date"
+                  value={formatDate(selectedLoanMobile.requestDate)}
                 />
                 {selectedLoanMobile.dueDate && (
-                  <DetailRow 
-                    label="Due Date" 
-                    value={formatDate(selectedLoanMobile.dueDate)} 
+                  <DetailRow
+                    label="Due Date"
+                    value={formatDate(selectedLoanMobile.dueDate)}
                   />
                 )}
-                {/* {selectedLoanMobile.repaidDate && (
-                  <DetailRow 
-                    label="Repaid Date" 
-                    value={formatDate(selectedLoanMobile.repaidDate)} 
+                {selectedLoanMobile.repaidDate && (
+                  <DetailRow
+                    label="Repaid Date"
+                    value={formatDate(selectedLoanMobile.repaidDate)}
                   />
-                )} */}
+                )}
               </div>
 
               {/* Status */}
@@ -381,7 +401,7 @@ export function Loans() {
                 <span className="text-sm text-gray-500">Status</span>
                 <span
                   className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider ${getStatusColor(
-                    selectedLoanMobile.status
+                    selectedLoanMobile.status,
                   )}`}
                 >
                   {selectedLoanMobile.status}
@@ -447,7 +467,7 @@ export function Loans() {
                   <span className="text-lg font-black text-blue-900 font-mono">
                     {formatCurrency(
                       (selectedLoan.approvedAmount || 0) -
-                        (selectedLoan.paidAmount || 0)
+                        (selectedLoan.paidAmount || 0),
                     )}
                   </span>
                 </div>
@@ -455,7 +475,7 @@ export function Loans() {
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                  Payment Amount (UGX)
+                  Payment Amount (KES)
                 </label>
                 <input
                   autoFocus
@@ -498,11 +518,21 @@ export function Loans() {
 }
 
 // Helper component for detail rows
-function DetailRow({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
+function DetailRow({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
   return (
     <div className="flex justify-between items-center">
       <span className="text-sm text-gray-500">{label}</span>
-      <span className={`text-sm font-medium ${highlight ? 'font-bold text-gray-900' : 'text-gray-600'}`}>
+      <span
+        className={`text-sm font-medium ${highlight ? "font-bold text-gray-900" : "text-gray-600"}`}
+      >
         {value}
       </span>
     </div>

@@ -1,4 +1,4 @@
-import { PersonalStats } from "./index";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export enum MemberStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
@@ -49,6 +49,8 @@ export interface DashboardSummary {
   totalLoansIssued: number;
   activeLoans: number;
   availableLoanAmount: number;
+  members: number;
+  totalContributions: number;
   personalStats: PersonalStats;
 }
 
@@ -59,6 +61,9 @@ export interface PersonalStats {
   numberOfLoans: number;
   missedContributionsAmount: number;
   numberOfMissedContributions: number;
+  joinDate: string;
+  premium: boolean;
+  totalMemberContribution: number;
 }
 
 export interface LoanRequest {
@@ -131,6 +136,9 @@ export interface Loan {
   eligibleAmount: number;
   memberNo: string;
   memberId: number;
+  totalPayableAmount: number;
+  balance: number;
+  repaidDate: string
 }
 
 export interface FineDto {
