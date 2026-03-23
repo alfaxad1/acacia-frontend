@@ -125,7 +125,7 @@ export function Dashboard() {
       </div>
 
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-6">
         <StatCard
           title="SACCO Balance"
           value={formatCurrency(summary.saccoBalance)}

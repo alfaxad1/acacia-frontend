@@ -11,17 +11,16 @@ interface StatCardProps {
   progress?: number;
 }
 
-export function StatCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  iconColor = 'text-blue-600',
+export function StatCard({
+  title,
+  value,
+  icon: Icon,
+  iconColor = "text-blue-600",
   trend,
   trendLabel,
   subtitle,
-  progress
+  progress,
 }: StatCardProps) {
-  
   const isTrendPositive = trend && trend > 0;
   const trendDisplay = trend ? (trend > 0 ? `+${trend}` : trend) : null;
 
@@ -32,22 +31,24 @@ export function StatCard({
           <p className="text-xs md:text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">
             {title}
           </p>
-          
-          <p className="text-lg md:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
+
+          <p className="text-md md:text-xl lg:text-2xl font-bold text-gray-900 truncate">
             {value}
           </p>
-          
+
           {subtitle && (
             <p className="text-[10px] md:text-xs text-gray-500 mt-1">
               {subtitle}
             </p>
           )}
-          
+
           <div className="flex items-center gap-2 mt-2">
             {trendDisplay && (
-              <div className={`flex items-center gap-1 text-xs font-medium ${
-                isTrendPositive ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <div
+                className={`flex items-center gap-1 text-xs font-medium ${
+                  isTrendPositive ? "text-green-600" : "text-red-600"
+                }`}
+              >
                 {isTrendPositive ? (
                   <ArrowUpRight size={14} className="text-green-600" />
                 ) : (
@@ -56,18 +57,16 @@ export function StatCard({
                 <span>{trendDisplay}%</span>
               </div>
             )}
-            
+
             {trendLabel && (
-              <span className="text-[10px] text-gray-400">
-                {trendLabel}
-              </span>
+              <span className="text-[10px] text-gray-400">{trendLabel}</span>
             )}
           </div>
 
           {progress !== undefined && (
             <div className="mt-3">
               <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div 
+                <div
                   className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(progress, 100)}%` }}
                 />
@@ -75,8 +74,10 @@ export function StatCard({
             </div>
           )}
         </div>
-        
-        <div className={`p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100/80 ${iconColor} ml-2`}>
+
+        <div
+          className={`p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100/80 ${iconColor} ml-2`}
+        >
           <Icon size={20} className="md:w-6 md:h-6" />
         </div>
       </div>
