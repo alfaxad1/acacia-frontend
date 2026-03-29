@@ -22,12 +22,9 @@ const ContributionArrears = () => {
     setLoading(true);
     try {
       const response = await arrearsApi.getArrears();
-      if (response.message === "SUCCESS") {
-        setData(response.data);
-      }
-      console.log("Arrears data loaded successfully", response.data);
+      setData(response);
     } catch (error) {
-      console.error("Failed to load arrears", error);
+      console.error("Network or Server error", error);
     } finally {
       setLoading(false);
     }

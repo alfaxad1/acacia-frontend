@@ -187,5 +187,5 @@ export const arrearsApi = {
   getArrears: () =>
     api
       .get<ApiResponse<ContributionArrearDto[]>>(`/contribution/arrears`)
-      .then((res) => res.data),
+      .then((res) => res.data.data),
 };
