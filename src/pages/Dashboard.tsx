@@ -23,8 +23,7 @@ import { useState } from "react";
 
 export function Dashboard() {
   const memberId = Number(localStorage.getItem("memberId"));
-  const memberName = localStorage.getItem("userName") || "Member";
-
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const {
     data: summary,
     loading,
@@ -94,7 +93,7 @@ export function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-            Welcome back, {memberName.split(" ")[0]}! 👋
+            Welcome back, {userData.name.split(" ")[0]}! 👋
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
             {new Date().toLocaleDateString("en-US", {

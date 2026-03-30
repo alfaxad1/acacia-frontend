@@ -66,13 +66,18 @@ export function Contributions() {
 
   const handleContributionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (contributionForm.memberId === 0 || contributionForm.periodId === 0) {
       toast.error("Please select both a member and a period");
       return;
     }
+
     setSubmitting(true);
+
     try {
       await contributionsApi.record(contributionForm);
+
+      // Success
       setIsContributionModalOpen(false);
       setContributionForm({
         memberId: 0,
@@ -81,10 +86,29 @@ export function Contributions() {
         paymentDate: new Date().toISOString().slice(0, 16),
       });
       refetch();
-      toast.success("Contribution recorded");
-    } catch (err) {
-      toast.error("Failed to record contribution");
+      toast.success("Contribution recorded successfully");
+    } catch (err: any) {
       console.error("Error recording contribution:", err);
+
+      // Extract the real error message from your backend
+      let errorMessage = "Failed to record contribution";
+
+      if (err.response?.data) {
+        const data = err.response.data;
+
+        // Prioritize the business message
+        if (data.message) {
+          errorMessage = data.message;
+        }
+        // Fallback options
+        else if (data.error) {
+          errorMessage = data.error;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      toast.error(errorMessage, { duration: 6000 });
     } finally {
       setSubmitting(false);
     }

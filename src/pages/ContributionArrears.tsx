@@ -11,12 +11,14 @@ import {
 } from "lucide-react";
 import { ContributionArrearDto } from "../types";
 import { arrearsApi } from "../services/api";
+import { formatCurrency, formatDate } from "../utils/format";
 
 const ContributionArrears = () => {
   const [data, setData] = useState<ContributionArrearDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedArrear, setSelectedArrear] = useState<ContributionArrearDto | null>(null);
+  const [selectedArrear, setSelectedArrear] =
+    useState<ContributionArrearDto | null>(null);
 
   const fetchArrears = async () => {
     setLoading(true);
@@ -35,16 +37,16 @@ const ContributionArrears = () => {
   }, []);
 
   const filteredData = data.filter((item) =>
-    item.memberName.toLowerCase().includes(searchTerm.toLowerCase())
+    item.memberName.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const totalArrears = filteredData.reduce(
     (sum, item) => sum + item.arrearAmount,
-    0
+    0,
   );
   const totalFines = filteredData.reduce(
     (sum, item) => sum + item.fineAmount,
-    0
+    0,
   );
   const totalOutstanding = totalArrears + totalFines;
 
@@ -55,7 +57,7 @@ const ContributionArrears = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-2">
-              <AlertCircle className="text-red-500 w-5 h-5 sm:w-6 sm:h-6" /> 
+              <AlertCircle className="text-red-500 w-5 h-5 sm:w-6 sm:h-6" />
               Missed Contributions
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
@@ -122,7 +124,9 @@ const ContributionArrears = () => {
           {loading ? (
             <div className="p-8 text-center">
               <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-400 text-sm font-medium">Loading arrears...</p>
+              <p className="text-gray-400 text-sm font-medium">
+                Loading arrears...
+              </p>
             </div>
           ) : filteredData.length === 0 ? (
             <div className="p-8 text-center text-gray-400">
@@ -143,15 +147,20 @@ const ContributionArrears = () => {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                        {item.memberName?.charAt(0).toUpperCase() || '?'}
+                        {item.memberName?.charAt(0).toUpperCase() || "?"}
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900">{item.memberName}</h3>
+                        <h3 className="font-bold text-gray-900">
+                          {item.memberName}
+                        </h3>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {new Date(item.periodDate).toLocaleDateString("en-US", {
-                            month: "short",
-                            year: "numeric"
-                          })}
+                          {new Date(item.periodDate).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
                         </p>
                       </div>
                     </div>
@@ -175,7 +184,8 @@ const ContributionArrears = () => {
                     <div className="bg-red-50 p-2 rounded-lg">
                       <p className="text-[10px] text-gray-500 mb-1">Total</p>
                       <p className="text-sm font-bold text-red-600">
-                        KSh {(item.arrearAmount + item.fineAmount).toLocaleString()}
+                        KSh{" "}
+                        {(item.arrearAmount + item.fineAmount).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -228,21 +238,18 @@ const ContributionArrears = () => {
                     <td className="px-6 lg:px-8 py-4 lg:py-5">
                       <div className="flex items-center gap-2 text-gray-500 font-medium text-xs lg:text-sm">
                         <Calendar size={12} className="lg:w-4 lg:h-4" />
-                        {new Date(item.periodDate).toLocaleDateString(
-                          "en-US",
-                          { month: "short", year: "numeric" }
-                        )}
+                        {formatDate(item.periodDate)}
                       </div>
                     </td>
                     <td className="px-6 lg:px-8 py-4 lg:py-5 text-right font-mono font-bold text-gray-700 text-sm lg:text-base">
-                      KSh {item.arrearAmount.toLocaleString()}
+                      {formatCurrency(item.arrearAmount)}
                     </td>
                     <td className="px-6 lg:px-8 py-4 lg:py-5 text-right font-mono font-bold text-orange-500 text-sm lg:text-base">
-                      KSh {item.fineAmount.toLocaleString()}
+                      {formatCurrency(item.fineAmount)}
                     </td>
                     <td className="px-6 lg:px-8 py-4 lg:py-5 text-right">
                       <div className="inline-block px-3 lg:px-4 py-1.5 lg:py-2 bg-red-50 text-red-700 rounded-lg lg:rounded-xl font-black font-mono text-xs lg:text-sm">
-                        KSh {(item.arrearAmount + item.fineAmount).toLocaleString()}
+                        {formatCurrency(item.arrearAmount + item.fineAmount)}
                       </div>
                     </td>
                     <td className="px-6 lg:px-8 py-4 lg:py-5 text-right">
@@ -276,44 +283,51 @@ const ContributionArrears = () => {
                   <X size={20} className="text-gray-500" />
                 </button>
               </div>
-              
+
               <div className="p-4 space-y-4">
                 {/* Member Info */}
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
-                    {selectedArrear.memberName?.charAt(0).toUpperCase() || '?'}
+                    {selectedArrear.memberName?.charAt(0).toUpperCase() || "?"}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">{selectedArrear.memberName}</h2>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {selectedArrear.memberName}
+                    </h2>
                     <p className="text-sm text-gray-500 mt-1">Member</p>
                   </div>
                 </div>
 
                 {/* Period */}
                 <div className="bg-gray-50 p-4 rounded-xl">
-                  <p className="text-xs text-gray-500 mb-1">Contribution Period</p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Contribution Period
+                  </p>
                   <p className="text-base font-medium text-gray-900">
-                    {new Date(selectedArrear.periodDate).toLocaleDateString("en-US", {
-                      month: "long",
-                      year: "numeric"
-                    })}
+                    {new Date(selectedArrear.periodDate).toLocaleDateString(
+                      "en-US",
+                      {
+                        month: "long",
+                        year: "numeric",
+                      },
+                    )}
                   </p>
                 </div>
 
                 {/* Amount Details */}
                 <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <DetailRow 
-                    label="Arrear Amount" 
+                  <DetailRow
+                    label="Arrear Amount"
                     value={`KSh ${selectedArrear.arrearAmount.toLocaleString()}`}
                   />
-                  <DetailRow 
-                    label="Fine Amount" 
+                  <DetailRow
+                    label="Fine Amount"
                     value={`KSh ${selectedArrear.fineAmount.toLocaleString()}`}
                     highlight
                   />
                   <div className="pt-2 border-t border-gray-200">
-                    <DetailRow 
-                      label="Total Payable" 
+                    <DetailRow
+                      label="Total Payable"
                       value={`KSh ${(selectedArrear.arrearAmount + selectedArrear.fineAmount).toLocaleString()}`}
                       bold
                     />
@@ -349,18 +363,25 @@ const ContributionArrears = () => {
 };
 
 // Helper component for detail rows
-function DetailRow({ label, value, highlight = false, bold = false }: { 
-  label: string; 
-  value: string; 
+function DetailRow({
+  label,
+  value,
+  highlight = false,
+  bold = false,
+}: {
+  label: string;
+  value: string;
   highlight?: boolean;
   bold?: boolean;
 }) {
   return (
     <div className="flex justify-between items-center">
       <span className="text-sm text-gray-500">{label}</span>
-      <span className={`text-sm ${bold ? 'font-bold' : 'font-medium'} ${
-        highlight ? 'text-orange-600' : 'text-gray-900'
-      }`}>
+      <span
+        className={`text-sm ${bold ? "font-bold" : "font-medium"} ${
+          highlight ? "text-orange-600" : "text-gray-900"
+        }`}
+      >
         {value}
       </span>
     </div>

@@ -40,8 +40,7 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
-  const userName = localStorage.getItem("userName");
-  const userRole = localStorage.getItem("role");
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -117,17 +116,17 @@ export function Layout({ children }: LayoutProps) {
         <div className="p-4 border-t shrink-0">
           <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
-              {userName
-                ? userName.charAt(0).toUpperCase() +
-                  userName.split(" ")[1].charAt(0)
+              {userData.name
+                ? userData.name.charAt(0).toUpperCase() +
+                  userData.name.split(" ")[1].charAt(0)
                 : "U"}
             </div>
             <div className="overflow-hidden">
               <p className="text-xs font-bold text-gray-900 truncate">
-                {userName}
+                {userData.name}
               </p>
               <p className="text-[10px] text-gray-500">
-                {userRole === "ADMIN" ? "Adminstrator" : "Member"}
+                {userData.role === "ADMIN" ? "Adminstrator" : "Member"}
               </p>
             </div>
           </div>
