@@ -180,31 +180,44 @@ export function Loans() {
       </div>
 
       {/* Tab Toggles - Mobile Optimized */}
-      <div className="flex p-1.5 bg-gray-100/80 rounded-2xl border border-gray-200 shadow-inner w-full md:w-auto">
-        <button
-          onClick={() => setActiveTab(LoanStatus.DISBURSED)}
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-8 py-3 md:py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all ${
-            activeTab === LoanStatus.DISBURSED
-              ? "bg-white text-blue-600 shadow-md ring-1 ring-black/5"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          <Clock size={16} />
-          <span className="hidden xs:inline">Active Loans</span>
-          <span className="xs:hidden">Active</span>
-        </button>
-        <button
-          onClick={() => setActiveTab(LoanStatus.REPAID)}
-          className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-8 py-3 md:py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all ${
-            activeTab === LoanStatus.REPAID
-              ? "bg-white text-emerald-600 shadow-md ring-1 ring-black/5"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          <CheckCircle2 size={16} />
-          <span className="hidden xs:inline">Settled</span>
-          <span className="xs:hidden">Settled</span>
-        </button>
+      <div className="flex p-1.5 bg-gray-100/80 rounded-2xl border border-gray-200 shadow-inner w-full md:w-auto overflow-x-auto">
+        <div className="flex gap-1 min-w-full md:min-w-0">
+          <button
+            onClick={() => setActiveTab(LoanStatus.DISBURSED)}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-8 py-3 md:py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all ${
+              activeTab === LoanStatus.DISBURSED
+                ? "bg-white text-blue-600 shadow-md ring-1 ring-black/5"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <Clock size={16} />
+            <span>Active</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab(LoanStatus.DEFAULTED)}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-8 py-3 md:py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all ${
+              activeTab === LoanStatus.DEFAULTED
+                ? "bg-white text-rose-600 shadow-md ring-1 ring-black/5"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <X size={16} className="text-rose-500" />
+            <span>Defaulted</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab(LoanStatus.REPAID)}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-8 py-3 md:py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all ${
+              activeTab === LoanStatus.REPAID
+                ? "bg-white text-emerald-600 shadow-md ring-1 ring-black/5"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <CheckCircle2 size={16} />
+            <span>Settled</span>
+          </button>
+        </div>
       </div>
 
       {/* Mobile View: Card Layout */}
