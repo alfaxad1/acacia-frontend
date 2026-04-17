@@ -5,7 +5,6 @@ import type {
   Loan,
   ContributionPeriod,
   DashboardSummary,
-  ContributionRequest,
   MemberRequest,
   LoanRequest,
   VoteDecision,
@@ -131,7 +130,17 @@ export const membersApi = {
 };
 
 export const contributionsApi = {
-  record: (data: ContributionRequest) => api.post("/contribution", data),
+  initiateStk: async (periodId: number, memberId: number) => {
+    const res = await api.post(
+      `/contribution?periodId=${periodId}&memberId=${memberId}`,
+    );
+    return res.data;
+  },
+
+  checkStatus: async (checkoutRequestId: string) => {
+    const res = await api.get(`/transaction-status/${checkoutRequestId}`);
+    return res.data; // Should return { status: "COMPLETED" | "PENDING" | "FAILED" }
+  },
 };
 
 export const loansApi = {
@@ -151,16 +160,20 @@ export const loansApi = {
     ),
   disburse: (loanId: number) =>
     api.post("/loan/disburse", {}, { params: { loanId } }),
-  postRepayment: (loanId: string | number, amount: number) =>
-    api.post(`/loan/repay`, {}, { params: { loanId, amount } }),
+  postRepayment: async (loanId: number, amount: number) => {
+    const res = await api.post(`/loan/repay?loanId=${loanId}&amount=${amount}`);
+    return res.data;
+  },
 };
 
 export const finesApi = {
   getAll: (status: FineStatus) =>
     api.get<FineDto[]>("/fine", { params: { status } }).then((res) => res.data),
   record: (data: FineRequest) => api.post("/fine", data),
-  settle: (fineId: number) =>
-    api.post("/fine/settle", {}, { params: { fineId } }),
+  settle: async (fineId: number) => {
+    const res = await api.post(`/fine/settle?fineId=${fineId}`);
+    return res.data;
+  },
 };
 
 export const authApi = {
