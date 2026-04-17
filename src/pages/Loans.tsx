@@ -305,17 +305,13 @@ export function Loans() {
                 <div className="bg-gray-50 p-3 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Amount</p>
                   <p className="font-bold text-gray-900">
-                    {formatCurrency(
-                      loan.approvedAmount || loan.requestedAmount,
-                    )}
+                    {formatCurrency(loan.totalPayableAmount)}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Balance</p>
                   <p className="font-bold text-gray-900">
-                    {formatCurrency(
-                      (loan.approvedAmount || 0) - (loan.paidAmount || 0),
-                    )}
+                    {formatCurrency(loan.balance || 0)}
                   </p>
                 </div>
               </div>
@@ -476,18 +472,19 @@ export function Loans() {
               </div>
 
               {/* Action Buttons */}
-              {activeTab === LoanStatus.DISBURSED && (
-                <button
-                  onClick={() => {
-                    handleOpenModal(selectedLoanMobile);
-                    setSelectedLoanMobile(null);
-                  }}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-100 active:scale-95 flex items-center justify-center gap-2"
-                >
-                  <Banknote size={18} />
-                  Record Repayment
-                </button>
-              )}
+              {activeTab === LoanStatus.DISBURSED &&
+                selectedLoanMobile.memberId === userData?.memberId && (
+                  <button
+                    onClick={() => {
+                      handleOpenModal(selectedLoanMobile);
+                      setSelectedLoanMobile(null);
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-100 active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <Banknote size={18} />
+                    Pay
+                  </button>
+                )}
 
               <button
                 onClick={() => setSelectedLoanMobile(null)}
