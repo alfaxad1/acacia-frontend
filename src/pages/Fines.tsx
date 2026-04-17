@@ -9,7 +9,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useApi } from "../hooks/useApi";
-import { finesApi, membersApi } from "../services/api";
+import { contributionsApi, finesApi, membersApi } from "../services/api";
 import { FineRequest, FineStatus, FineTyp, Role } from "../types";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
@@ -75,15 +75,68 @@ const Fines: React.FC = () => {
     refetchFines();
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSettle = async (fineId: number) => {
-    await toast.promise(finesApi.settle(fineId), {
-      loading: "Settling...",
-      success: "Fine Settled!",
-      error: "Failed to settle.",
-    });
-    setFineToSettle(null);
-    setSelectedFine(null);
-    refetchFines();
+    setIsSubmitting(true);
+    const loadingToast = toast.loading("Initiating STK Push for fine...");
+
+    try {
+      // 1. Trigger the STK push
+      const response = await finesApi.settle(fineId);
+
+      // Extract the checkoutRequestId from your ResponseHandler
+      const checkoutId = response.data?.checkoutRequestId;
+
+      if (!checkoutId) throw new Error("No Checkout ID received");
+
+      toast.loading("Check your phone for the PIN prompt...", {
+        id: loadingToast,
+      });
+
+      // 2. Poll for transaction completion
+      await pollFineStatus(checkoutId, loadingToast);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to initiate payment", {
+        id: loadingToast,
+      });
+      setIsSubmitting(false);
+    }
+  };
+
+  const pollFineStatus = async (checkoutId: string, toastId: string) => {
+    let attempts = 0;
+    const maxAttempts = 15;
+
+    const interval = setInterval(async () => {
+      try {
+        attempts++;
+        const statusRes = await contributionsApi.checkStatus(checkoutId);
+
+        if (statusRes === "COMPLETED") {
+          clearInterval(interval);
+          toast.success("Fine Paid Successfully!", { id: toastId });
+          setIsSubmitting(false);
+          setFineToSettle(null);
+          setSelectedFine(null);
+          refetchFines(); // Refresh table
+        } else if (statusRes === "FAILED" || statusRes === "CANCELLED") {
+          clearInterval(interval);
+          toast.error("Payment failed.", { id: toastId });
+          setIsSubmitting(false);
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          toast.error("Timed out. Check your status in a bit.", {
+            id: toastId,
+          });
+          setIsSubmitting(false);
+        }
+      } catch (error) {
+        console.warn("Polling fine status...");
+      }
+    }, 5000);
   };
 
   if (finesLoading) return <LoadingSpinner />;
@@ -219,10 +272,11 @@ const Fines: React.FC = () => {
               {activeTab === FineStatus.UNPAID && role === "ADMIN" && (
                 <div className="mt-3 pt-3 border-t">
                   <button
+                    disabled={isSubmitting}
                     onClick={() => setFineToSettle(fine.id)}
-                    className="w-full bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+                    className="w-full bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
                   >
-                    Settle Fine
+                    {isSubmitting ? "Processing..." : "Settle Fine"}
                   </button>
                 </div>
               )}
@@ -387,10 +441,11 @@ const Fines: React.FC = () => {
 
               {activeTab === FineStatus.UNPAID && role === "ADMIN" && (
                 <button
+                  disabled={isSubmitting}
                   onClick={() => setFineToSettle(selectedFine.id)}
                   className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
                 >
-                  Settle Fine
+                  {isSubmitting ? "Processing..." : "Settle Fine"}
                 </button>
               )}
 

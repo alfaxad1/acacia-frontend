@@ -4,7 +4,7 @@ import { Table } from "../components/Table";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { useApi } from "../hooks/useApi";
-import { loansApi } from "../services/api";
+import { contributionsApi, loansApi } from "../services/api";
 import { formatCurrency, formatDate, getStatusColor } from "../utils/format";
 import { LoanStatus, type Loan } from "../types";
 import {
@@ -55,17 +55,70 @@ export function Loans() {
     if (!selectedLoan || !repayAmount) return;
 
     setIsSubmitting(true);
+    const loadingToast = toast.loading("Initiating M-Pesa STK Push...");
+
     try {
-      loansApi.postRepayment(selectedLoan.id, Number(repayAmount));
-      toast.success("Repayment recorded successfully");
-      refetch();
-      handleCloseModal();
-      setSelectedLoanMobile(null);
+      // 1. Call the backend - update your loansApi.postRepayment to return the response data
+      const response = await loansApi.postRepayment(
+        selectedLoan.id,
+        Number(repayAmount),
+      );
+
+      // Access the checkoutRequestId from your ResponseHandler structure
+      const checkoutId = response.data?.checkoutRequestId;
+
+      if (!checkoutId) {
+        throw new Error("No Checkout ID received");
+      }
+
+      toast.loading("PIN prompt sent! Waiting for confirmation...", {
+        id: loadingToast,
+      });
+
+      // 2. Start polling for the COMPLETED status
+      await pollLoanStatus(checkoutId, loadingToast);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to process repayment");
-    } finally {
+      console.error("Error initiating repayment:", err);
+      toast.error(
+        err.response?.data?.message || "Failed to initiate repayment",
+        { id: loadingToast },
+      );
       setIsSubmitting(false);
     }
+  };
+
+  const pollLoanStatus = async (checkoutId: string, toastId: string) => {
+    let attempts = 0;
+    const maxAttempts = 15; // ~75 seconds
+
+    const interval = setInterval(async () => {
+      try {
+        attempts++;
+        const statusRes = await contributionsApi.checkStatus(checkoutId);
+
+        if (statusRes === "COMPLETED") {
+          clearInterval(interval);
+          toast.success("Repayment Successful!", { id: toastId });
+          setIsSubmitting(false);
+          handleCloseModal();
+          refetch(); // Refresh the loan table/balance
+        } else if (statusRes === "FAILED" || statusRes === "CANCELLED") {
+          clearInterval(interval);
+          toast.error("Payment was declined.", { id: toastId });
+          setIsSubmitting(false);
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          toast.error("Timed out. Please check your balance in a moment.", {
+            id: toastId,
+          });
+          setIsSubmitting(false);
+        }
+      } catch (error) {
+        console.warn("Polling loan status...");
+      }
+    }, 5000);
   };
 
   const columns = [
