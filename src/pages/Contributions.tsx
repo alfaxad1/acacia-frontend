@@ -177,7 +177,7 @@ export function Contributions() {
         <div>
           <h1 className="text-2xl font-black text-gray-900">Contributions</h1>
           <p className="text-sm text-gray-500 font-medium">
-            Monthly savings tracking
+            Weekly Contributions tracking
           </p>
         </div>
         {role === "ADMIN" && (

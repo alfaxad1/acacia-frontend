@@ -29,6 +29,7 @@ const Fines: React.FC = () => {
   });
 
   const role: Role = (localStorage.getItem("role") as Role) || "MEMBER";
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
 
   const {
     data: fines,
@@ -269,17 +270,18 @@ const Fines: React.FC = () => {
                 )}
               </div>
 
-              {activeTab === FineStatus.UNPAID && role === "ADMIN" && (
-                <div className="mt-3 pt-3 border-t">
-                  <button
-                    disabled={isSubmitting}
-                    onClick={() => setFineToSettle(fine.id)}
-                    className="w-full bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
-                  >
-                    {isSubmitting ? "Processing..." : "Settle Fine"}
-                  </button>
-                </div>
-              )}
+              {activeTab === FineStatus.UNPAID &&
+                fine.memberId === userData?.memberId && (
+                  <div className="mt-3 pt-3 border-t">
+                    <button
+                      disabled={isSubmitting}
+                      onClick={() => setFineToSettle(fine.id)}
+                      className="w-full bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+                    >
+                      {isSubmitting ? "Processing..." : "Settle Fine"}
+                    </button>
+                  </div>
+                )}
             </div>
           </div>
         ))}
@@ -339,16 +341,17 @@ const Fines: React.FC = () => {
                     </td>
                   )}
 
-                  {activeTab === FineStatus.UNPAID && role === "ADMIN" && (
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => setFineToSettle(fine.id)}
-                        className="text-xs bg-indigo-600 text-white px-4 py-1.5 rounded-md hover:bg-indigo-700 shadow-sm"
-                      >
-                        Settle
-                      </button>
-                    </td>
-                  )}
+                  {activeTab === FineStatus.UNPAID &&
+                    fine.memberId === userData?.memberId && (
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => setFineToSettle(fine.id)}
+                          className="text-xs bg-indigo-600 text-white px-4 py-1.5 rounded-md hover:bg-indigo-700 shadow-sm"
+                        >
+                          Settle
+                        </button>
+                      </td>
+                    )}
                 </tr>
               ))}
             </tbody>
@@ -439,15 +442,16 @@ const Fines: React.FC = () => {
                 />
               </div>
 
-              {activeTab === FineStatus.UNPAID && role === "ADMIN" && (
-                <button
-                  disabled={isSubmitting}
-                  onClick={() => setFineToSettle(selectedFine.id)}
-                  className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-                >
-                  {isSubmitting ? "Processing..." : "Settle Fine"}
-                </button>
-              )}
+              {activeTab === FineStatus.UNPAID &&
+                selectedFine.memberId === userData?.memberId && (
+                  <button
+                    disabled={isSubmitting}
+                    onClick={() => setFineToSettle(selectedFine.id)}
+                    className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                  >
+                    {isSubmitting ? "Processing..." : "Settle Fine"}
+                  </button>
+                )}
 
               <button
                 onClick={() => setSelectedFine(null)}

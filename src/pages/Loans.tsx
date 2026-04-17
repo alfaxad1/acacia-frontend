@@ -27,6 +27,8 @@ export function Loans() {
   const [repayAmount, setRepayAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+
   const {
     data: loans,
     loading,
@@ -58,13 +60,11 @@ export function Loans() {
     const loadingToast = toast.loading("Initiating M-Pesa STK Push...");
 
     try {
-      // 1. Call the backend - update your loansApi.postRepayment to return the response data
       const response = await loansApi.postRepayment(
         selectedLoan.id,
         Number(repayAmount),
       );
 
-      // Access the checkoutRequestId from your ResponseHandler structure
       const checkoutId = response.data?.checkoutRequestId;
 
       if (!checkoutId) {
@@ -75,7 +75,6 @@ export function Loans() {
         id: loadingToast,
       });
 
-      // 2. Start polling for the COMPLETED status
       await pollLoanStatus(checkoutId, loadingToast);
     } catch (err: any) {
       console.error("Error initiating repayment:", err);
@@ -194,7 +193,8 @@ export function Loans() {
       header: "",
       render: (loan: Loan) => (
         <div className="flex justify-end">
-          {activeTab === LoanStatus.DISBURSED ? (
+          {activeTab === LoanStatus.DISBURSED &&
+          loan.memberId === userData?.memberId ? (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -203,7 +203,7 @@ export function Loans() {
               className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-100 active:scale-95"
             >
               <Banknote size={14} />
-              Repay
+              Pay
             </button>
           ) : (
             <div className="text-emerald-500 p-2 bg-emerald-50 rounded-full">
@@ -342,18 +342,19 @@ export function Loans() {
               </div>
 
               {/* Action Button for Active Loans */}
-              {activeTab === LoanStatus.DISBURSED && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenModal(loan);
-                  }}
-                  className="w-full mt-4 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-100 active:scale-95"
-                >
-                  <Banknote size={16} />
-                  Record Repayment
-                </button>
-              )}
+              {activeTab === LoanStatus.DISBURSED &&
+                loan.memberId === userData?.memberId && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenModal(loan);
+                    }}
+                    className="w-full mt-4 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-100 active:scale-95"
+                  >
+                    <Banknote size={16} />
+                    Pay
+                  </button>
+                )}
             </div>
           </div>
         ))}
@@ -531,10 +532,7 @@ export function Loans() {
                     Outstanding Balance:
                   </span>
                   <span className="text-lg font-black text-blue-900 font-mono">
-                    {formatCurrency(
-                      (selectedLoan.approvedAmount || 0) -
-                        (selectedLoan.paidAmount || 0),
-                    )}
+                    {formatCurrency(selectedLoan.totalPayableAmount)}
                   </span>
                 </div>
               </div>
@@ -571,7 +569,7 @@ export function Loans() {
                   {isSubmitting ? (
                     <Loader2 className="animate-spin" size={18} />
                   ) : (
-                    "Record Payment"
+                    "Pay"
                   )}
                 </button>
               </div>

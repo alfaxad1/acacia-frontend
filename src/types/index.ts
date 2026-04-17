@@ -144,6 +144,7 @@ export interface Loan {
 export interface FineDto {
   id: number;
   memberName: string;
+  memberId: number; 
   amount: number;
   date: string;
   status: FineStatus;
