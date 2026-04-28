@@ -90,6 +90,7 @@ export interface MemberRequest {
 
 export interface Contribution {
   id: number;
+  memberId: number;
   memberName: string | null;
   amount: number;
   paymentDate: string;

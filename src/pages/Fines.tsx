@@ -83,7 +83,6 @@ const Fines: React.FC = () => {
     const loadingToast = toast.loading("Initiating STK Push for fine...");
 
     try {
-      // 1. Trigger the STK push
       const response = await finesApi.settle(fineId);
 
       // Extract the checkoutRequestId from your ResponseHandler
@@ -95,7 +94,6 @@ const Fines: React.FC = () => {
         id: loadingToast,
       });
 
-      // 2. Poll for transaction completion
       await pollFineStatus(checkoutId, loadingToast);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to initiate payment", {
@@ -120,7 +118,7 @@ const Fines: React.FC = () => {
           setIsSubmitting(false);
           setFineToSettle(null);
           setSelectedFine(null);
-          refetchFines(); // Refresh table
+          refetchFines();
         } else if (statusRes === "FAILED" || statusRes === "CANCELLED") {
           clearInterval(interval);
           toast.error("Payment failed.", { id: toastId });
@@ -135,6 +133,7 @@ const Fines: React.FC = () => {
           setIsSubmitting(false);
         }
       } catch (error) {
+        console.error("Error checking fine status:", error);
         console.warn("Polling fine status...");
       }
     }, 5000);

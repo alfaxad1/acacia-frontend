@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { Plus, Eye, Calendar, Loader2, CreditCard } from "lucide-react";
+import { Plus, Eye, Loader2, CreditCard } from "lucide-react";
 import { Table } from "../components/Table";
 import { Modal } from "../components/Modal";
 import { LoadingSpinner } from "../components/LoadingSpinner";
@@ -14,9 +14,11 @@ import toast from "react-hot-toast";
 export function Contributions() {
   const [selectedPeriod, setSelectedPeriod] =
     useState<ContributionPeriod | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activePaymentId, setActivePaymentId] = useState<number | null>(null);
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
   const [periodDate, setPeriodDate] = useState("");
+  const memberId = Number(localStorage.getItem("memberId"));
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     data: apiResponse,
@@ -40,7 +42,8 @@ export function Contributions() {
     );
     if (!confirmPay) return;
 
-    setIsSubmitting(true);
+    setActivePaymentId(periodId);
+
     const loadingToast = toast.loading("Initiating STK Push...");
 
     try {
@@ -48,42 +51,55 @@ export function Contributions() {
         periodId,
         Number(memberId),
       );
-      const checkoutId = response.data?.checkoutRequestId;
 
+      const checkoutId = response.data?.checkoutRequestId;
       if (!checkoutId) throw new Error("No Checkout ID received");
 
       toast.loading("Check your phone for PIN prompt...", { id: loadingToast });
-      await pollStatus(checkoutId, loadingToast);
+
+      await pollStatus(checkoutId, loadingToast, periodId);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to start payment", {
         id: loadingToast,
       });
-      setIsSubmitting(false);
+      setActivePaymentId(null);
     }
   };
 
-  const pollStatus = async (checkoutId: string, toastId: string) => {
+  const pollStatus = async (
+    checkoutId: string,
+    toastId: string,
+    periodId: number,
+  ) => {
+    console.log("Polling for period:", periodId);
     let attempts = 0;
+
     const interval = setInterval(async () => {
       try {
         attempts++;
+
         const res = await contributionsApi.checkStatus(checkoutId);
-        if (res.status === "COMPLETED") {
+
+        if (res === "COMPLETED") {
           clearInterval(interval);
           toast.success("Contribution Paid!", { id: toastId });
           setIsSubmitting(false);
+          setActivePaymentId(null);
           refetch();
-        } else if (res.status === "FAILED") {
+        } else if (res === "FAILED") {
           clearInterval(interval);
           toast.error("Payment failed", { id: toastId });
-          setIsSubmitting(false);
+          setActivePaymentId(null);
         }
+
         if (attempts >= 15) {
           clearInterval(interval);
           toast.error("Timed out. Check status later", { id: toastId });
           setIsSubmitting(false);
+          setActivePaymentId(null);
         }
       } catch (e) {
+        console.error("Error checking payment status:", e);
         console.warn("Polling...");
       }
     }, 5000);
@@ -99,6 +115,7 @@ export function Contributions() {
       refetch();
       toast.success("Period created");
     } catch (err) {
+      console.error(err);
       toast.error("Failed to create period");
     } finally {
       setIsSubmitting(false);
@@ -144,27 +161,34 @@ export function Contributions() {
     {
       key: "actions",
       header: "",
-      render: (p: ContributionPeriod) => (
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={() => setSelectedPeriod(p)}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
-          >
-            <Eye size={18} />
-          </button>
-          <button
-            onClick={() => handleInitiatePayment(p.id)}
-            disabled={isSubmitting}
-            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full"
-          >
-            {isSubmitting ? (
-              <Loader2 className="animate-spin" size={18} />
-            ) : (
-              <CreditCard size={18} />
+      render: (p: ContributionPeriod) => {
+        const hasPaid = p.contributions?.some((c) => c.memberId === memberId);
+
+        return (
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setSelectedPeriod(p)}
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+            >
+              <Eye size={18} />
+            </button>
+
+            {!hasPaid && (
+              <button
+                onClick={() => handleInitiatePayment(p.id)}
+                disabled={activePaymentId === p.id}
+                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full"
+              >
+                {activePaymentId === p.id ? (
+                  <Loader2 className="animate-spin" size={18} />
+                ) : (
+                  <CreditCard size={18} />
+                )}
+              </button>
             )}
-          </button>
-        </div>
-      ),
+          </div>
+        );
+      },
     },
   ];
 
@@ -192,45 +216,52 @@ export function Contributions() {
 
       {/* Mobile & Desktop layouts use same simple patterns as Loans/Fines */}
       <div className="md:hidden space-y-4">
-        {periods.map((p) => (
-          <div
-            key={p.id}
-            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4"
-          >
-            <div className="flex justify-between items-center">
-              <div className="font-bold text-gray-900">
-                {formatDate(p.date)}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSelectedPeriod(p)}
-                  className="p-2 bg-gray-50 rounded-full"
-                >
-                  <Eye size={20} />
-                </button>
-                <button
-                  onClick={() => handleInitiatePayment(p.id)}
-                  disabled={isSubmitting}
-                  className="p-2 bg-emerald-50 text-emerald-600 rounded-full"
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="animate-spin" size={20} />
-                  ) : (
-                    <CreditCard size={20} />
+        {periods.map((p) => {
+          const hasPaid = p.contributions?.some((c) => c.memberId === memberId);
+
+          return (
+            <div
+              key={p.id}
+              className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4"
+            >
+              <div className="flex justify-between items-center">
+                <div className="font-bold text-gray-900">
+                  {formatDate(p.date)}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedPeriod(p)}
+                    className="p-2 bg-gray-50 rounded-full"
+                  >
+                    <Eye size={20} />
+                  </button>
+
+                  {!hasPaid && (
+                    <button
+                      onClick={() => handleInitiatePayment(p.id)}
+                      disabled={activePaymentId === p.id}
+                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full"
+                    >
+                      {activePaymentId === p.id ? (
+                        <Loader2 className="animate-spin" size={18} />
+                      ) : (
+                        <CreditCard size={18} />
+                      )}
+                    </button>
                   )}
-                </button>
+                </div>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Collected:</span>
+                <span className="font-bold text-emerald-600">
+                  {formatCurrency(
+                    p.contributions?.reduce((s, c) => s + c.amount, 0) || 0,
+                  )}
+                </span>
               </div>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Collected:</span>
-              <span className="font-bold text-emerald-600">
-                {formatCurrency(
-                  p.contributions?.reduce((s, c) => s + c.amount, 0) || 0,
-                )}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="hidden md:block bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
