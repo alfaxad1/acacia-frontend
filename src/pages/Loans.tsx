@@ -193,8 +193,9 @@ export function Loans() {
       header: "",
       render: (loan: Loan) => (
         <div className="flex justify-end">
-          {activeTab === LoanStatus.DISBURSED &&
-          loan.memberId === userData?.memberId ? (
+          {activeTab === LoanStatus.DISBURSED ||
+          (activeTab === LoanStatus.DEFAULTED &&
+            loan.memberId === userData?.memberId) ? (
             <button
               onClick={(e) => {
                 e.stopPropagation();
