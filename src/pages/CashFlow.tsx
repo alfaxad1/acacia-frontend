@@ -17,6 +17,7 @@ const FILTERS: { key: Direction; label: string }[] = [
 ];
 
 export default function CashFlow() {
+  const role = localStorage.getItem("role") || "MEMBER";
   const [direction, setDirection] = useState<Direction>("ALL");
   const [page, setPage] = useState(0);
   const [rows, setRows] = useState<CashFlowRow[]>([]);
@@ -97,12 +98,14 @@ export default function CashFlow() {
             Every shilling that entered or left the chama, in plain language.
           </p>
         </div>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 active:scale-95 transition"
-        >
-          <Plus size={16} /> Record money
-        </button>
+        {role === "ADMIN" && (
+          <button
+            onClick={() => setModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 active:scale-95 transition"
+          >
+            <Plus size={16} /> Record money
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

@@ -77,10 +77,9 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { name: "Meetings", icon: CalendarDays, path: "/meetings" },
       { name: "Invite members", icon: MailPlus, path: "/invites", adminOnly: true },
-      { name: "Chama setup", icon: SlidersHorizontal, path: "/chama-setup", adminOnly: true },
       { name: "M-Pesa setup", icon: Smartphone, path: "/mpesa-setup", adminOnly: true },
       { name: "Debits & credits", icon: CreditCard, path: "/account-adjustments", adminOnly: true },
-      { name: "Settings", icon: Settings, path: "/settings" },
+      { name: "Settings", icon: Settings, path: "/settings", adminOnly: true },
     ],
   },
 ];

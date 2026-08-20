@@ -18,8 +18,6 @@ export function Contributions() {
   const [selectedPeriod, setSelectedPeriod] =
     useState<ContributionPeriod | null>(null);
   const [activePaymentId, setActivePaymentId] = useState<number | null>(null);
-  const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
-  const [periodDate, setPeriodDate] = useState("");
   const memberId = Number(localStorage.getItem("memberId"));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [surplusBalance, setSurplusBalance] = useState(0);
@@ -155,25 +153,8 @@ export function Contributions() {
     });
 
     eventSource.onerror = (err) => {
-      console.warn("SSE connection error", err);
+      console.warn("SSE connection connection error", err);
     };
-  };
-
-  const handlePeriodSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      await periodsApi.create({ date: periodDate });
-      setIsPeriodModalOpen(false);
-      setPeriodDate("");
-      refetch();
-      toast.success("Period created");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to create period");
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   useEffect(() => {
@@ -262,14 +243,7 @@ export function Contributions() {
             Weekly Contributions tracking
           </p>
         </div>
-        {role === "ADMIN" && (
-          <button
-            onClick={() => setIsPeriodModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 active:scale-95 transition-all"
-          >
-            <Plus size={18} /> <span>New Period</span>
-          </button>
-        )}
+        {/* Admin 'New Period' button removed */}
       </div>
 
       {/* Mobile & Desktop layouts */}
@@ -362,32 +336,7 @@ export function Contributions() {
         </table>
       </Modal>
 
-      {/* New Period Modal */}
-      <Modal
-        isOpen={isPeriodModalOpen}
-        onClose={() => setIsPeriodModalOpen(false)}
-        title="New Period"
-      >
-        <form onSubmit={handlePeriodSubmit} className="space-y-4 p-2">
-          <input
-            type="date"
-            required
-            className="w-full p-4 bg-gray-50 border rounded-xl"
-            value={periodDate}
-            onChange={(e) => setPeriodDate(e.target.value)}
-          />
-          <button
-            disabled={isSubmitting}
-            className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-blue-100 transition-all active:scale-95"
-          >
-            {isSubmitting ? (
-              <Loader2 className="animate-spin mx-auto" />
-            ) : (
-              "Confirm New Period"
-            )}
-          </button>
-        </form>
-      </Modal>
+      {/* New Period Modal removed */}
 
       {/* STK Push Confirmation Modal */}
       {isStkModalOpen && (
