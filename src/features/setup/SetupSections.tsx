@@ -18,11 +18,24 @@ export function ContributionSection({ value, patch }: Props) {
 
   return (
     <div className="space-y-4">
+      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <Field label="Mobile Money Integration" hint="Which payment gateway will this chama use?">
+          <Select
+            value={value.paymentProvider ?? "MPESA"}
+            onChange={(provider) => patch({ paymentProvider: provider })}
+            options={[
+              { value: "MPESA", label: "Safaricom Daraja" },
+              { value: "KCB", label: "KCB Buni" },
+            ]}
+          />
+        </Field>
+      </div>
+
       <Toggle
         checked={c.enabled}
         onChange={(enabled) => set({ enabled })}
         label="Members contribute on a schedule"
-        description="Bills are raised automatically each period and reconciled against M-Pesa."
+        description="Bills are raised automatically each period and reconciled against M-Pesa or KCB."
       />
       {c.enabled && (
         <div className="space-y-4">

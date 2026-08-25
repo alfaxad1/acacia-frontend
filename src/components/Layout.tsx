@@ -23,6 +23,7 @@ import {
   PieChart,
   BarChart3,
   ArrowLeftRight,
+  BookOpen,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -44,6 +45,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
       { name: "Members", icon: Users, path: "/members" },
       { name: "My portfolio", icon: PieChart, path: "/portfolio" },
       { name: "Money in & out", icon: ArrowLeftRight, path: "/cash-flow" },
+      { name: "Ledger Accounts", icon: BookOpen, path: "/ledger", adminOnly: true },
     ],
   },
   {
@@ -77,7 +79,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { name: "Meetings", icon: CalendarDays, path: "/meetings" },
       { name: "Invite members", icon: MailPlus, path: "/invites", adminOnly: true },
-      { name: "M-Pesa setup", icon: Smartphone, path: "/mpesa-setup", adminOnly: true },
+      { name: "Payment gateway", icon: Smartphone, path: "/payment-gateway", adminOnly: true },
       { name: "Debits & credits", icon: CreditCard, path: "/account-adjustments", adminOnly: true },
       { name: "Settings", icon: Settings, path: "/settings", adminOnly: true },
     ],

@@ -90,22 +90,27 @@ export interface MemberRequest {
   role: Role;
 }
 
-export interface Contribution {
+export interface BillDto {
   id: number;
   memberId: number;
   memberName: string | null;
-  amount: number;
-  paymentDate: string;
-  late: boolean;
+  amountDue: number;
+  amountPaid: number;
+  status: string;
+  settledAt: string | null;
 }
 
-export interface ContributionPeriod {
-  id: number;
-  date: string;
-  deadline: string;
-  amountRequired: number;
+export interface BillGroupDto {
+  dueDate: string;
   totalTarget: number;
-  contributions: Contribution[];
+  collected: number;
+  bills: BillDto[];
+}
+
+export interface PlanSummaryDto {
+  planId: number;
+  planName: string;
+  billGroups: BillGroupDto[];
 }
 
 export interface Member {
@@ -267,4 +272,15 @@ export interface B2cTransferDto {
   authorizedByName: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LedgerAccountDto {
+  id: number;
+  code: string;
+  name: string;
+  type: string;
+  fund: string;
+  ownerMemberId: number | null;
+  active: boolean;
+  balance: number;
 }

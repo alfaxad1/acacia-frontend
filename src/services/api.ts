@@ -126,10 +126,33 @@ export const contributionApi = {
     api.get<number>(`/contribution/surplus/${memberId}`),
 };
 
+export interface BillDto {
+  id: number;
+  memberId: number;
+  memberName: string;
+  amountDue: number;
+  amountPaid: number;
+  status: string;
+  settledAt: string | null;
+}
+
+export interface BillGroupDto {
+  dueDate: string;
+  totalTarget: number;
+  collected: number;
+  bills: BillDto[];
+}
+
+export interface PlanSummaryDto {
+  planId: number;
+  planName: string;
+  billGroups: BillGroupDto[];
+}
+
 export const periodsApi = {
   getWithContributions: (page: number = 0, size: number = 10) =>
     api
-      .get<ApiResponse<ContributionPeriod[]>>("/contribution-period", { params: { page, size } })
+      .get<PlanSummaryDto[]>("/chama/contributions/summary", { params: { page, size } })
       .then((res) => res.data),
   create: (data: { date: string }) =>
     api.post("/contribution-period", data).then((res) => res.data),
@@ -157,6 +180,11 @@ export const contributionsApi = {
   checkStatus: async (checkoutRequestId: string) => {
     const res = await api.get(`/transaction-status/${checkoutRequestId}`);
     return res.data; // Should return { status: "COMPLETED" | "PENDING" | "FAILED" }
+  },
+
+  triggerLifecycle: async () => {
+    const res = await api.post("/chama/contributions/trigger-lifecycle");
+    return res.data;
   },
 };
 
@@ -329,5 +357,12 @@ export const b2cTransfersApi = {
       approve: String(approve),
     });
     return api.post(`/b2c-transfers/${requestId}/authorize?${params.toString()}`).then((res) => res.data);
+  },
+};
+
+export const ledgerApi = {
+  getAccounts: async () => {
+    const res = await api.get<import("../types").LedgerAccountDto[]>("/ledger");
+    return res.data;
   },
 };

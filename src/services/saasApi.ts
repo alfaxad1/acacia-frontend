@@ -194,6 +194,7 @@ export const chamaApi = {
 };
 
 export interface MpesaCredentialView {
+  provider?: "MPESA" | "KCB";
   configured: boolean;
   sandbox: boolean;
   shortcode?: string;
@@ -204,12 +205,16 @@ export interface MpesaCredentialView {
   consumerSecretSet: boolean;
   passkeySet: boolean;
   b2cSecurityCredentialSet: boolean;
+  kcbInvoiceNumber?: string;
+  kcbOrgShortCode?: string;
+  kcbSharedShortCode?: boolean;
   status?: string;
   lastVerifiedAt?: string;
   lastVerificationError?: string;
 }
 
 export interface MpesaCredentialRequest {
+  provider?: "MPESA" | "KCB";
   sandbox: boolean;
   shortcode?: string;
   paybill?: string;
@@ -219,6 +224,9 @@ export interface MpesaCredentialRequest {
   consumerSecret?: string;
   passkey?: string;
   b2cSecurityCredential?: string;
+  kcbInvoiceNumber?: string;
+  kcbOrgShortCode?: string;
+  kcbSharedShortCode?: boolean;
 }
 
 export const mpesaVaultApi = {
@@ -227,6 +235,8 @@ export const mpesaVaultApi = {
     api.put<MpesaCredentialView>(`${CHAMA}/mpesa-credentials`, payload).then((r) => r.data),
   verify: () => api.post<MpesaCredentialView>(`${CHAMA}/mpesa-credentials/verify`).then((r) => r.data),
   remove: () => api.delete<MpesaCredentialView>(`${CHAMA}/mpesa-credentials`).then((r) => r.data),
+  getIpnUrl: () =>
+    api.get<{ ipnUrl: string }>(`${CHAMA}/mpesa-credentials/kcb-ipn-url`).then((r) => r.data.ipnUrl),
 };
 
 /* ------------------------------------------------------------------ setup */
@@ -356,6 +366,7 @@ export interface ChamaSetupPayload {
   welfare?: WelfareSetup;
   loanDefaultPolicy?: LoanDefaultPolicySetup;
   invites?: InviteSetup[];
+  paymentProvider?: string;
   markComplete?: boolean;
 }
 
@@ -381,6 +392,7 @@ export interface ChamaSetupRecord {
   contributionBlockAfterDays?: number;
   blockOnUnpaidFines?: boolean;
   blockOnUnpaidContributions?: boolean;
+  paymentProvider?: string;
 }
 
 export interface ChamaSetupView {

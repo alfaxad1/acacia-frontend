@@ -18,6 +18,7 @@ import B2cTransfers from "./pages/B2cTransfers";
 import Meetings from "./pages/Meetings";
 import RegisterChama from "./pages/RegisterChama";
 import MpesaSetup from "./pages/MpesaSetup";
+import PaymentGateway from "./pages/PaymentGateway";
 import Welfare from "./pages/Welfare";
 import MerryGoRound from "./pages/MerryGoRound";
 import Invites from "./pages/Invites";
@@ -27,6 +28,7 @@ import Investments from "./pages/Investments";
 import Dividends from "./pages/Dividends";
 import MemberPortfolio from "./pages/MemberPortfolio";
 import CashFlow from "./pages/CashFlow";
+import { LedgerAccounts } from "./pages/LedgerAccounts";
 
 function App() {
   return (
@@ -116,6 +118,16 @@ function App() {
             }
           />
           <Route
+            path="/ledger"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <LedgerAccounts />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/pendingLoans"
             element={
               <ProtectedRoute>
@@ -197,15 +209,16 @@ function App() {
             }
           />
           <Route
-            path="/mpesa-setup"
+            path="/payment-gateway"
             element={
               <ProtectedRoute>
                 <Layout>
-                  <MpesaSetup />
+                  <PaymentGateway />
                 </Layout>
               </ProtectedRoute>
             }
           />
+          <Route path="/mpesa-setup" element={<Navigate to="/payment-gateway" replace />} />
           <Route
             path="/invites"
             element={

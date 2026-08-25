@@ -12,6 +12,7 @@ export default function MpesaSetup() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
+    provider: "MPESA" as "MPESA" | "KCB",
     sandbox: true,
     shortcode: "",
     paybill: "",
@@ -21,6 +22,9 @@ export default function MpesaSetup() {
     consumerSecret: "",
     passkey: "",
     b2cSecurityCredential: "",
+    kcbInvoiceNumber: "",
+    kcbOrgShortCode: "",
+    kcbSharedShortCode: false,
   });
 
   const load = async () => {
@@ -31,11 +35,15 @@ export default function MpesaSetup() {
       setView(data);
       setForm((f) => ({
         ...f,
+        provider: data.provider ?? "MPESA",
         sandbox: data.sandbox,
         shortcode: data.shortcode ?? "",
         paybill: data.paybill ?? "",
         b2cShortcode: data.b2cShortcode ?? "",
         initiatorName: data.initiatorName ?? "",
+        kcbInvoiceNumber: data.kcbInvoiceNumber ?? "",
+        kcbOrgShortCode: data.kcbOrgShortCode ?? "",
+        kcbSharedShortCode: data.kcbSharedShortCode ?? false,
       }));
     } catch {
       setError("Could not load the M-Pesa vault");
@@ -133,8 +141,20 @@ export default function MpesaSetup() {
       </div>
 
       <form onSubmit={save} className="p-5 bg-white rounded-xl border border-gray-200 space-y-4">
-        <div className="flex items-center gap-2 text-gray-700 font-medium">
-          <KeyRound size={18} /> Daraja credentials
+        <div className="flex items-center gap-4 text-gray-700 font-medium">
+          <KeyRound size={18} /> Payment credentials
+          
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-sm">Gateway:</span>
+            <select
+              value={form.provider}
+              onChange={(e) => setForm({ ...form, provider: e.target.value as "MPESA" | "KCB" })}
+              className="border rounded-md px-2 py-1 text-sm bg-gray-50"
+            >
+              <option value="MPESA">Safaricom Daraja</option>
+              <option value="KCB">KCB Buni</option>
+            </select>
+          </div>
         </div>
 
         <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -147,13 +167,30 @@ export default function MpesaSetup() {
         </label>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <input className="border rounded-lg px-3 py-2" placeholder="Till / shortcode"
+          {form.provider === "KCB" && (
+            <>
+              <input className="border rounded-lg px-3 py-2" placeholder="KCB Invoice Number"
+                value={form.kcbInvoiceNumber} onChange={(e) => setForm({ ...form, kcbInvoiceNumber: e.target.value })} />
+              <input className="border rounded-lg px-3 py-2" placeholder="KCB Org Short Code"
+                value={form.kcbOrgShortCode} onChange={(e) => setForm({ ...form, kcbOrgShortCode: e.target.value })} />
+              <label className="flex items-center gap-2 text-sm text-gray-700 sm:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={form.kcbSharedShortCode}
+                  onChange={(e) => setForm({ ...form, kcbSharedShortCode: e.target.checked })}
+                />
+                Use KCB Shared Short Code
+              </label>
+            </>
+          )}
+
+          <input className="border rounded-lg px-3 py-2" placeholder="M-Pesa Till / shortcode"
             value={form.shortcode} onChange={(e) => setForm({ ...form, shortcode: e.target.value })} />
-          <input className="border rounded-lg px-3 py-2" placeholder="Paybill"
+          <input className="border rounded-lg px-3 py-2" placeholder="M-Pesa Paybill"
             value={form.paybill} onChange={(e) => setForm({ ...form, paybill: e.target.value })} />
-          <input className="border rounded-lg px-3 py-2" placeholder="B2C shortcode (payouts)"
+          <input className="border rounded-lg px-3 py-2" placeholder="M-Pesa B2C shortcode (payouts)"
             value={form.b2cShortcode} onChange={(e) => setForm({ ...form, b2cShortcode: e.target.value })} />
-          <input className="border rounded-lg px-3 py-2" placeholder="Initiator name"
+          <input className="border rounded-lg px-3 py-2" placeholder="M-Pesa Initiator name"
             value={form.initiatorName} onChange={(e) => setForm({ ...form, initiatorName: e.target.value })} />
         </div>
 

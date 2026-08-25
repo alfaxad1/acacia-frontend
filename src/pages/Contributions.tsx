@@ -9,14 +9,14 @@ import { ErrorMessage } from "../components/ErrorMessage";
 import { useApi } from "../hooks/useApi";
 import { contributionsApi, periodsApi } from "../services/api";
 import { formatCurrency, formatDateTime, formatDate } from "../utils/format";
-import type { ContributionPeriod, Role } from "../types";
+import type { PlanSummaryDto, BillGroupDto, BillDto, Role } from "../types";
 import toast from "react-hot-toast";
 import { contributionApi } from "../services/api";
 import { API_URL } from "../config/constant";
 
 export function Contributions() {
-  const [selectedPeriod, setSelectedPeriod] =
-    useState<ContributionPeriod | null>(null);
+  const [selectedGroup, setSelectedGroup] =
+    useState<BillGroupDto | null>(null);
   const [activePaymentId, setActivePaymentId] = useState<number | null>(null);
   const memberId = Number(localStorage.getItem("memberId"));
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,28 +48,36 @@ export function Contributions() {
   });
 
   const role: Role = (localStorage.getItem("role") as Role) || "MEMBER";
-  const periods: ContributionPeriod[] = (apiResponse as any)?.data || [];
-  const metaData = (apiResponse as any)?.metaData;
+  const plans: PlanSummaryDto[] = (apiResponse as any) || [];
 
-  const openStkModal = (periodId: number) => {
-    const period = periods.find(p => p.id === periodId);
-    const requiredAmount = period?.amountRequired || 0;
+  // Find the exact bill by id from the plans
+  const getBill = (billId: number) => {
+    for (const plan of plans) {
+      for (const group of plan.billGroups) {
+        for (const b of group.bills) {
+          if (b.id === billId) return b;
+        }
+      }
+    }
+    return null;
+  };
+
+  const openStkModal = (billId: number) => {
+    const bill = getBill(billId);
+    if (!bill) return;
+    
+    const requiredAmount = bill.amountDue - bill.amountPaid;
     let defaultAmount = requiredAmount;
     
-    // Suggest a reduced amount if they have surplus
     if (surplusBalance > 0 && surplusBalance < requiredAmount) {
         defaultAmount = requiredAmount - surplusBalance;
     } else if (surplusBalance >= requiredAmount) {
-        // Even if surplus covers it, they might want to pay 0 via MPESA, but MPESA minimum is 1.
-        // We will just set it to requiredAmount, or 1? MPESA requires >= 1. 
-        // We'll set it to 0 and handle it as a manual "Pay with Surplus" if 0? 
-        // Wait, the backend doesn't support 0 stk push. Let's default to requiredAmount.
         defaultAmount = requiredAmount; 
     }
 
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     setStkPhone(userData?.phone || "");
-    setStkPeriodId(periodId);
+    setStkPeriodId(billId);
     setAmountToPay(String(defaultAmount));
     setIsStkModalOpen(true);
   };
@@ -161,25 +169,24 @@ export function Contributions() {
     refetch();
   }, [currentPage]);
 
-  const columns = [
+  const renderColumns = (plan: PlanSummaryDto) => [
     {
       key: "date",
-      header: "Period Date",
-      render: (p: ContributionPeriod) => (
-        <div className="font-bold text-gray-900">{formatDate(p.date)}</div>
+      header: "Due Date",
+      render: (g: BillGroupDto) => (
+        <div className="font-bold text-gray-900">{formatDate(g.dueDate)}</div>
       ),
     },
     {
       key: "required",
       header: "Target",
-      render: (p: ContributionPeriod) => formatCurrency(p.totalTarget),
+      render: (g: BillGroupDto) => formatCurrency(g.totalTarget),
     },
     {
       key: "collected",
       header: "Collected",
-      render: (p: ContributionPeriod) => {
-        const total =
-          p.contributions?.reduce((sum, c) => sum + c.amount, 0) || 0;
+      render: (g: BillGroupDto) => {
+        const total = g.collected || 0;
         return (
           <div className="flex flex-col">
             <span className="font-bold text-emerald-600">
@@ -189,7 +196,7 @@ export function Contributions() {
               <div
                 className="h-full bg-emerald-500"
                 style={{
-                  width: `${Math.min((total / p.amountRequired) * 100, 100)}%`,
+                  width: `${Math.min((total / (g.totalTarget || 1)) * 100, 100)}%`,
                 }}
               />
             </div>
@@ -200,25 +207,27 @@ export function Contributions() {
     {
       key: "actions",
       header: "",
-      render: (p: ContributionPeriod) => {
-        const hasPaid = p.contributions?.some((c) => c.memberId === memberId);
+      render: (g: BillGroupDto) => {
+        const myBill = g.bills?.find((c) => c.memberId === memberId);
+        const hasPaid = myBill?.status === "PAID";
+        const outstanding = myBill ? myBill.amountDue - myBill.amountPaid : 0;
 
         return (
           <div className="flex gap-2 justify-end">
             <button
-              onClick={() => setSelectedPeriod(p)}
+              onClick={() => setSelectedGroup(g)}
               className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
             >
               <Eye size={18} />
             </button>
 
-            {!hasPaid && (
+            {myBill && outstanding > 0 && (
               <button
-                onClick={() => openStkModal(p.id)}
-                disabled={activePaymentId === p.id}
+                onClick={() => openStkModal(myBill.id)}
+                disabled={activePaymentId === myBill.id}
                 className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full"
               >
-                {activePaymentId === p.id ? (
+                {activePaymentId === myBill.id ? (
                   <Loader2 className="animate-spin" size={18} />
                 ) : (
                   <CreditCard size={18} />
@@ -246,89 +255,39 @@ export function Contributions() {
         {/* Admin 'New Period' button removed */}
       </div>
 
-      {/* Mobile & Desktop layouts */}
-      <div className="md:hidden space-y-4">
-        {periods.map((p) => {
-          const hasPaid = p.contributions?.some((c) => c.memberId === memberId);
-
-          return (
-            <div
-              key={p.id}
-              className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4"
-            >
-              <div className="flex justify-between items-center">
-                <div className="font-bold text-gray-900">
-                  {formatDate(p.date)}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setSelectedPeriod(p)}
-                    className="p-2 bg-gray-50 rounded-full"
-                  >
-                    <Eye size={20} />
-                  </button>
-
-                  {!hasPaid && (
-                    <button
-                      onClick={() => openStkModal(p.id)}
-                      disabled={activePaymentId === p.id}
-                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full"
-                    >
-                      {activePaymentId === p.id ? (
-                        <Loader2 className="animate-spin" size={18} />
-                      ) : (
-                        <CreditCard size={18} />
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Collected:</span>
-                <span className="font-bold text-emerald-600">
-                  {formatCurrency(
-                    p.contributions?.reduce((s, c) => s + c.amount, 0) || 0,
-                  )}
-                </span>
-              </div>
+      {/* Desktop layouts */}
+      <div className="hidden md:block space-y-8">
+        {plans.map((plan) => (
+          <div key={plan.planId} className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+              <h2 className="text-xl font-bold text-gray-900">{plan.planName}</h2>
             </div>
-          );
-        })}
+            <Table columns={renderColumns(plan)} data={plan.billGroups} />
+          </div>
+        ))}
       </div>
 
-      <div className="hidden md:block bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-        <Table columns={columns} data={periods} />
-      </div>
 
-      {metaData && metaData.totalPages > 1 && (
-        <div className="flex justify-center mt-6">
-          <Pagination
-            page={currentPage}
-            totalPages={metaData.totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
-      )}
 
       {/* Breakdown Modal */}
       <Modal
-        isOpen={!!selectedPeriod}
-        onClose={() => setSelectedPeriod(null)}
-        title="Breakdown"
+        isOpen={!!selectedGroup}
+        onClose={() => setSelectedGroup(null)}
+        title={`Breakdown: ${selectedGroup ? formatDate(selectedGroup.dueDate) : ""}`}
         size="lg"
       >
         <table className="min-w-full divide-y divide-gray-200 mt-4">
           <tbody className="bg-white divide-y divide-gray-100">
-            {selectedPeriod?.contributions.map((c) => (
-              <tr key={c.id}>
+            {selectedGroup?.bills.map((b) => (
+              <tr key={b.id}>
                 <td className="px-6 py-4 text-sm font-semibold">
-                  {c.memberName}
+                  {b.memberName}
                 </td>
                 <td className="px-6 py-4 text-sm text-emerald-600 font-bold">
-                  {formatCurrency(c.amount)}
+                  {formatCurrency(b.amountPaid)}
                 </td>
                 <td className="px-6 py-4 text-xs text-gray-400">
-                  {formatDateTime(c.paymentDate)}
+                  {b.status}
                 </td>
               </tr>
             ))}
@@ -370,8 +329,8 @@ export function Contributions() {
                 {surplusBalance > 0 && (
                   <div className="mt-2 p-2 bg-emerald-100 rounded text-xs text-emerald-800 font-bold">
                     You have a surplus of {formatCurrency(surplusBalance)}. 
-                    {surplusBalance < (periods.find(p => p.id === stkPeriodId)?.amountRequired || 0) && (
-                      <span> We recommend paying {formatCurrency((periods.find(p => p.id === stkPeriodId)?.amountRequired || 0) - surplusBalance)} to cover the rest.</span>
+                    {surplusBalance < (getBill(stkPeriodId || 0)?.amountDue || 0) && (
+                      <span> We recommend paying {formatCurrency((getBill(stkPeriodId || 0)?.amountDue || 0) - surplusBalance)} to cover the rest.</span>
                     )}
                   </div>
                 )}
