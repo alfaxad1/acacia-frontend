@@ -57,11 +57,7 @@ const Fines: React.FC = () => {
     data: await membersApi.getAll(),
   }));
 
-  useEffect(() => {
-    if (userData?.memberId) {
-      contributionsApi.checkStatus("") // just importing it to get the object, wait, contributionApi is imported!
-    }
-  }, []);
+
 
   useEffect(() => {
     if (userData?.memberId) {
