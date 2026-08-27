@@ -267,7 +267,80 @@ export function Contributions() {
         ))}
       </div>
 
+      {/* Mobile card layouts */}
+      <div className="block md:hidden space-y-6">
+        {plans.map((plan) => (
+          <div key={plan.planId}>
+            <h2 className="text-base font-black text-gray-800 mb-3 px-1">{plan.planName}</h2>
+            <div className="space-y-3">
+              {plan.billGroups.map((g) => {
+                const myBill = g.bills.find((b) => b.memberId === memberId);
+                const collected = g.collected || 0;
+                const pct = Math.min((collected / (g.totalTarget || 1)) * 100, 100);
+                return (
+                  <div
+                    key={g.dueDate}
+                    className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3"
+                  >
+                    {/* Date row */}
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-0.5">Due Date</p>
+                        <p className="text-base font-bold text-gray-900">{formatDate(g.dueDate)}</p>
+                      </div>
+                      {/* Eye icon */}
+                      <button
+                        onClick={() => setSelectedGroup(g)}
+                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                      >
+                        <Eye size={18} />
+                      </button>
+                    </div>
 
+                    {/* Target / Collected */}
+                    <div className="flex gap-4">
+                      <div className="flex-1 bg-gray-50 rounded-xl p-3">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Target</p>
+                        <p className="text-sm font-bold text-gray-800">{formatCurrency(g.totalTarget)}</p>
+                      </div>
+                      <div className="flex-1 bg-emerald-50 rounded-xl p-3">
+                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Collected</p>
+                        <p className="text-sm font-bold text-emerald-700">{formatCurrency(collected)}</p>
+                      </div>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+
+                    {/* Pay button for current member's unpaid bill */}
+                    {myBill && myBill.amountPaid < myBill.amountDue && (
+                      <button
+                        onClick={() => openStkModal(myBill.id)}
+                        disabled={activePaymentId === myBill.id}
+                        className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black rounded-xl shadow-lg shadow-emerald-200 transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        {activePaymentId === myBill.id ? (
+                          <Loader2 className="animate-spin" size={16} />
+                        ) : (
+                          <>
+                            <CreditCard size={16} />
+                            Pay Now
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* Breakdown Modal */}
       <Modal

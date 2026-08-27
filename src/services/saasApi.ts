@@ -255,6 +255,7 @@ export interface ContributionSetup {
   customIntervalDays?: number;
   startDate?: string;
   gracePeriodDays?: number;
+  graceCutoffTime?: string;
   fund?: string;
   /** Days an old fine/arrear may age before new contributions are blocked. 0 = never. */
   blockAfterDays?: number;

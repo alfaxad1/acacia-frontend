@@ -1,4 +1,5 @@
-import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { ChamaSetupPayload, InviteSetup, LoanDefaultTierSetup, WelfareBenefitSetup } from "../../services/saasApi";
 import { Field, NumberInput, Select, TextInput, Toggle } from "../../components/ui/Form";
 import { DAYS, WEEK_ORDINALS } from "./defaults";
@@ -145,6 +146,17 @@ export function ContributionSection({ value, patch }: Props) {
             <Field label="Grace days before a fine" hint="0 means a fine the moment it is late">
               <NumberInput value={c.gracePeriodDays} onChange={(gracePeriodDays) => set({ gracePeriodDays })} />
             </Field>
+            
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-700">Grace Cutoff Time</label>
+              <p className="text-xs text-gray-500 mb-2">Time of day when grace period ends (e.g. 18:00). Leave blank to default to 23:59.</p>
+              <input 
+                type="time" 
+                value={c.graceCutoffTime || ''} 
+                onChange={(e) => set({ graceCutoffTime: e.target.value })}
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+              />
+            </div>
           </div>
           <Toggle
             checked={c.penaltiesEnabled ?? true}
@@ -660,6 +672,7 @@ export function LoanDefaultsSection({ value, patch }: Props) {
   const tiers = p.tiers ?? [];
   const setTier = (index: number, next: Partial<LoanDefaultTierSetup>) =>
     set({ tiers: tiers.map((t, i) => (i === index ? { ...t, ...next } : t)) });
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   return (
     <div className="space-y-4">
@@ -723,35 +736,90 @@ export function LoanDefaultsSection({ value, patch }: Props) {
                 Each tier needs a percentage. Tiers are stored when you press “Save changes”.
               </p>
               {tiers.map((t, index) => (
-                <div key={index} className="rounded-2xl border border-gray-200 p-4">
-                  <div className="grid gap-3 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] sm:items-end">
-                    <Field label="From (KES)">
-                      <NumberInput value={t.minAmount} onChange={(minAmount) => setTier(index, { minAmount })} />
-                    </Field>
-                    <Field label="Up to (KES)" hint="Blank means and above">
-                      <NumberInput value={t.maxAmount} onChange={(maxAmount) => setTier(index, { maxAmount })} />
-                    </Field>
-                    <Field label="Penalty %">
-                      <NumberInput
-                        step={0.5}
-                        value={t.percentage}
-                        onChange={(percentage) => setTier(index, { percentage })}
-                      />
-                    </Field>
-                    <button
-                      type="button"
-                      onClick={() => set({ tiers: tiers.filter((_, i) => i !== index) })}
-                      className="btn-secondary sm:w-11 sm:px-0"
-                      aria-label="Remove tier"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                <div
+                  key={index}
+                  className={`rounded-2xl border border-gray-200 p-4 transition-colors ${
+                    editingIndex !== index ? "group cursor-pointer hover:bg-gray-50" : ""
+                  }`}
+                  onClick={() => {
+                    if (editingIndex !== index) setEditingIndex(index);
+                  }}
+                >
+                  {editingIndex === index ? (
+                    <div className="grid gap-3 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] sm:items-end">
+                      <Field label="From (KES)">
+                        <NumberInput value={t.minAmount} onChange={(minAmount) => setTier(index, { minAmount })} />
+                      </Field>
+                      <Field label="Up to (KES)" hint="Blank means and above">
+                        <NumberInput value={t.maxAmount} onChange={(maxAmount) => setTier(index, { maxAmount })} />
+                      </Field>
+                      <Field label="Penalty %">
+                        <NumberInput
+                          step={0.5}
+                          value={t.percentage}
+                          onChange={(percentage) => setTier(index, { percentage })}
+                        />
+                      </Field>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          set({ tiers: tiers.filter((_, i) => i !== index) });
+                          if (editingIndex === index) setEditingIndex(null);
+                        }}
+                        className="btn-secondary sm:w-11 sm:px-0"
+                        aria-label="Remove tier"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-gray-900">
+                        {t.maxAmount ? (
+                          <>
+                            {(t.minAmount ?? 0).toLocaleString()} to {t.maxAmount.toLocaleString()} KES
+                          </>
+                        ) : (
+                          <>Over {(t.minAmount ?? 0).toLocaleString()} KES</>
+                        )}
+                        <span className="ml-3 inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700">
+                          {t.percentage ?? 0}% penalty
+                        </span>
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          className="p-2 text-gray-400 opacity-0 transition-opacity hover:text-brand-600 group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingIndex(index);
+                          }}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          className="p-2 text-gray-400 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            set({ tiers: tiers.filter((_, i) => i !== index) });
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               <button
                 type="button"
-                onClick={() => set({ tiers: [...tiers, { minAmount: 0, percentage: 5 }] })}
+                onClick={() => {
+                  const newIndex = tiers.length;
+                  set({ tiers: [...tiers, { minAmount: 0, percentage: 5 }] });
+                  setEditingIndex(newIndex);
+                }}
                 className="btn-secondary w-full sm:w-auto"
               >
                 <Plus size={16} /> Add a tier

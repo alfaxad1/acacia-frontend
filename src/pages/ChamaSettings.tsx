@@ -84,6 +84,7 @@ export default function ChamaSettings() {
                   customIntervalDays: plan.customIntervalDays,
                   startDate: plan.startDate,
                   gracePeriodDays: plan.gracePeriodDays,
+                  graceCutoffTime: plan.graceCutoffTime,
                 }
               : {}),
           },
