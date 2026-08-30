@@ -15,7 +15,7 @@ import type {
   FineTypeRequest,
   ExtraDto,
   AccountAdjustment,
-  ContributionArrearDto,
+  BillDto,
 } from "../types";
 import { API_URL } from "../config/constant";
 
@@ -219,19 +219,38 @@ export const loansApi = {
 };
 
 export const finesApi = {
-  getAll: (status: FineStatus) =>
-    api.get<FineDto[]>("/fine", { params: { status } }).then((res) => res.data),
-  getTypes: () => api.get<FineType[]>("/finetypes").then((res) => res.data),
-  record: (data: FineRequest) => api.post("/fine", data),
-  createType: (data: FineTypeRequest) => api.post("/finetypes", data),
+  getAll: (status: FineStatus, page: number = 0, size: number = 100) =>
+    api.get<any>("/chama/fines/page", { params: { status, page, size } }).then((res) => res.data.content),
+  getTypes: () => api.get<any[]>("/chama/fines/rules").then((res) => res.data),
+  record: (data: any) => {
+    return api.post("/chama/fines/manual", {
+      memberId: data.memberId,
+      amount: data.amount || 0, // Fallback if amount isn't in FineRequest
+      narrative: "Manual fine",
+      reference: `MANUAL-${Date.now()}`
+    });
+  },
+  createType: (data: any) => {
+    return api.post("/chama/fines/rules", {
+      name: data.name,
+      description: data.description,
+      amount: data.amount,
+      percentage: data.percentage,
+      calculation: data.percentage > 0 ? "PERCENTAGE" : "FIXED",
+      trigger: "MANUAL",
+      active: true,
+      autoApply: true
+    });
+  },
   settle: async (fineId: number, phone?: string) => {
     const params = new URLSearchParams({
       fineId: String(fineId),
     });
     if (phone) params.append("phone", phone);
-    const res = await api.post(`/fine/settle?${params.toString()}`);
+    const res = await api.post(`/chama/fines/settle?${params.toString()}`);
     return res.data;
   },
+  delete: (fineId: number) => api.delete(`/chama/fines/${fineId}`),
 };
 
 export const authApi = {
@@ -257,7 +276,7 @@ export const adjustmentApi = {
 export const arrearsApi = {
   getArrears: (page = 0, size = 10, search?: string) =>
     api
-      .get<ApiResponse<ContributionArrearDto[]>>(`/contribution/arrears`, {
+      .get<ApiResponse<BillDto[]>>(`/contribution/arrears`, {
         params: { page, size, ...(search ? { search } : {}) },
       })
       .then((res) => res.data),
@@ -365,4 +384,13 @@ export const ledgerApi = {
     const res = await api.get<import("../types").LedgerAccountDto[]>("/ledger");
     return res.data;
   },
+};
+
+export const transactionsApi = {
+  getAll: (page = 0, size = 15, search?: string) =>
+    api
+      .get("/transactions", {
+        params: { page, size, ...(search ? { search } : {}) },
+      })
+      .then((res) => res.data),
 };

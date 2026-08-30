@@ -380,7 +380,10 @@ export function Dashboard() {
                 <Activity size={18} className="text-green-600" />
                 Recent Transactions
               </h2>
-              <button className="text-xs md:text-sm text-blue-600 font-medium hover:text-blue-700">
+              <button
+                onClick={() => navigate('/transactions')}
+                className="text-xs md:text-sm text-blue-600 font-medium hover:text-blue-700"
+              >
                 View All
               </button>
             </div>

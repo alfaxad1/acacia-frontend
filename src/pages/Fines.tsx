@@ -216,6 +216,21 @@ const Fines: React.FC = () => {
     };
   };
 
+  const handleDelete = async (fineId: number) => {
+    if (!window.confirm("Are you sure you want to permanently delete this fine?")) return;
+    try {
+      await toast.promise(finesApi.delete(fineId), {
+        loading: "Deleting fine...",
+        success: "Fine deleted successfully!",
+        error: "Failed to delete fine",
+      });
+      refetchFines();
+      setSelectedFine(null);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   if (finesLoading) return <LoadingSpinner />;
   if (finesError)
     return <ErrorMessage message={finesError} onRetry={refetchFines} />;
@@ -328,9 +343,9 @@ const Fines: React.FC = () => {
                       {fine.memberName}
                     </h3>
                     <p className="text-xs text-gray-500">
-                      {fine.fineTypeName.includes("_")
-                        ? fine.fineTypeName.replace("_", " ")
-                        : fine.fineTypeName}
+                      {fine.narrative?.includes("_")
+                        ? fine.narrative.replace("_", " ")
+                        : fine.narrative}
                     </p>
                   </div>
                 </div>
@@ -346,32 +361,39 @@ const Fines: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Fine Date</p>
-                  <p className="text-gray-900">{formatDate(fine.date)}</p>
+                  <p className="text-gray-900">{formatDate(fine.issuedOn)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Recorded</p>
-                  <p className="text-gray-900">{formatDate(fine.date)}</p>
+                  <p className="text-gray-900">{formatDate(fine.issuedOn)}</p>
                 </div>
-                {activeTab === FineStatus.PAID && fine.paidDate && (
+                {activeTab === FineStatus.PAID && fine.paidOn && (
                   <div className="col-span-2">
                     <p className="text-xs text-gray-500">Paid Date</p>
-                    <p className="text-gray-900">{formatDate(fine.paidDate)}</p>
+                    <p className="text-gray-900">{formatDate(fine.paidOn)}</p>
                   </div>
                 )}
               </div>
 
-              {activeTab === FineStatus.UNPAID &&
-                fine.memberId === userData?.memberId && (
-                  <div className="mt-3 pt-3 border-t">
-                    <button
-                      disabled={isSubmitting}
-                      onClick={() => handleOpenSettleModal(fine)}
-                      className="w-full bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
-                    >
-                      {isSubmitting ? "Processing..." : "Settle Fine"}
-                    </button>
-                  </div>
+              <div className="mt-3 pt-3 border-t flex gap-2">
+                {activeTab === FineStatus.UNPAID && fine.memberId === userData?.memberId && (
+                  <button
+                    disabled={isSubmitting}
+                    onClick={(e) => { e.stopPropagation(); handleOpenSettleModal(fine); }}
+                    className="flex-1 bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+                  >
+                    {isSubmitting ? "Processing..." : "Settle Fine"}
+                  </button>
                 )}
+                {['ADMIN', 'CHAIRPERSON', 'TREASURER'].includes(role) && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(fine.id); }}
+                    className="flex-1 bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -398,16 +420,14 @@ const Fines: React.FC = () => {
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">
                   Recorded
                 </th>
-                {activeTab === FineStatus.UNPAID && (
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase">
-                    Action
-                  </th>
-                )}
                 {activeTab === FineStatus.PAID && (
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">
                     Paid Date
                   </th>
                 )}
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -420,36 +440,43 @@ const Fines: React.FC = () => {
                     {fine.memberName}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {fine.fineTypeName.includes("_")
-                      ? fine.fineTypeName.replace("_", " ")
-                      : fine.fineTypeName}
+                    {fine.narrative?.includes("_")
+                      ? fine.narrative.replace("_", " ")
+                      : fine.narrative}
                   </td>
                   <td className="px-6 py-4 text-sm font-bold">
                     {formatCurrency(fine.amount)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {formatDate(fine.date)}
+                    {formatDate(fine.issuedOn)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {formatDate(fine.date)}
+                    {formatDate(fine.issuedOn)}
                   </td>
-                  {activeTab === FineStatus.PAID && (
+                  {activeTab === FineStatus.PAID ? (
                     <td className="px-6 py-4 text-sm font-bold">
-                      {formatDate(fine.paidDate)}
+                      {formatDate(fine.paidOn)}
                     </td>
-                  )}
-
-                  {activeTab === FineStatus.UNPAID &&
-                    fine.memberId === userData?.memberId && (
-                      <td className="px-6 py-4 text-center">
+                  ) : null}
+                  <td className="px-6 py-4 text-center flex items-center justify-center gap-2">
+                    {activeTab === FineStatus.UNPAID &&
+                      fine.memberId === userData?.memberId && (
                         <button
                           onClick={() => handleOpenSettleModal(fine)}
                           className="text-xs bg-indigo-600 text-white px-4 py-1.5 rounded-md hover:bg-indigo-700 shadow-sm"
                         >
                           Settle
                         </button>
-                      </td>
+                      )}
+                    {['ADMIN', 'CHAIRPERSON', 'TREASURER'].includes(role) && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDelete(fine.id); }}
+                        className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 shadow-sm"
+                      >
+                        Delete
+                      </button>
                     )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -516,16 +543,16 @@ const Fines: React.FC = () => {
                 />
                 <DetailRow
                   label="Fine Date"
-                  value={formatDate(selectedFine.date)}
+                  value={formatDate(selectedFine.issuedOn)}
                 />
                 <DetailRow
                   label="Recorded On"
                   value={formatDate(selectedFine.createdAt)}
                 />
-                {activeTab === FineStatus.PAID && selectedFine.paidDate && (
+                {activeTab === FineStatus.PAID && selectedFine.paidOn && (
                   <DetailRow
                     label="Paid Date"
-                    value={formatDate(selectedFine.paidDate)}
+                    value={formatDate(selectedFine.paidOn)}
                   />
                 )}
                 <DetailRow

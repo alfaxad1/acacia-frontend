@@ -9,16 +9,16 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
-import { ContributionArrearDto } from "../types";
+import { BillDto } from "../types";
 import { arrearsApi } from "../services/api";
 import { formatCurrency, formatDate } from "../utils/format";
 
 const ContributionArrears = () => {
-  const [data, setData] = useState<ContributionArrearDto[]>([]);
+  const [data, setData] = useState<BillDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedArrear, setSelectedArrear] =
-    useState<ContributionArrearDto | null>(null);
+    useState<BillDto | null>(null);
 
   const fetchArrears = async () => {
     setLoading(true);
@@ -41,14 +41,10 @@ const ContributionArrears = () => {
   );
 
   const totalArrears = filteredData.reduce(
-    (sum, item) => sum + item.arrearAmount,
+    (sum, item) => sum + (item.amountDue - item.amountPaid),
     0,
   );
-  const totalFines = filteredData.reduce(
-    (sum, item) => sum + item.fineAmount,
-    0,
-  );
-  const totalOutstanding = totalArrears + totalFines;
+  const totalOutstanding = totalArrears;
 
   return (
     <div className="min-h-screen bg-gray-50/50 px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8">
@@ -82,14 +78,6 @@ const ContributionArrears = () => {
             </p>
             <p className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900">
               KSh {totalArrears.toLocaleString()}
-            </p>
-          </div>
-          <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm">
-            <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">
-              Accumulated Fines
-            </p>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-black text-orange-600">
-              KSh {totalFines.toLocaleString()}
             </p>
           </div>
           <div className="bg-blue-600 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl shadow-blue-100 col-span-1 sm:col-span-2 lg:col-span-1">
@@ -154,13 +142,13 @@ const ContributionArrears = () => {
                           {item.memberName}
                         </h3>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {new Date(item.periodDate).toLocaleDateString(
+                          {item.dueDate ? new Date(item.dueDate).toLocaleDateString(
                             "en-US",
                             {
                               month: "short",
                               year: "numeric",
                             },
-                          )}
+                          ) : "N/A"}
                         </p>
                       </div>
                     </div>
@@ -168,24 +156,18 @@ const ContributionArrears = () => {
                   </div>
 
                   {/* Amounts */}
-                  <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="grid grid-cols-2 gap-2 mt-2">
                     <div className="bg-gray-50 p-2 rounded-lg">
                       <p className="text-[10px] text-gray-500 mb-1">Arrear</p>
                       <p className="text-sm font-bold text-gray-700">
-                        KSh {item.arrearAmount.toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 p-2 rounded-lg">
-                      <p className="text-[10px] text-gray-500 mb-1">Fine</p>
-                      <p className="text-sm font-bold text-orange-600">
-                        KSh {item.fineAmount.toLocaleString()}
+                        KSh {(item.amountDue - item.amountPaid).toLocaleString()}
                       </p>
                     </div>
                     <div className="bg-red-50 p-2 rounded-lg">
                       <p className="text-[10px] text-gray-500 mb-1">Total</p>
                       <p className="text-sm font-bold text-red-600">
                         KSh{" "}
-                        {(item.arrearAmount + item.fineAmount).toLocaleString()}
+                        {(item.amountDue - item.amountPaid).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -238,18 +220,18 @@ const ContributionArrears = () => {
                     <td className="px-6 lg:px-8 py-4 lg:py-5">
                       <div className="flex items-center gap-2 text-gray-500 font-medium text-xs lg:text-sm">
                         <Calendar size={12} className="lg:w-4 lg:h-4" />
-                        {formatDate(item.periodDate)}
+                        {item.dueDate ? formatDate(item.dueDate) : "N/A"}
                       </div>
                     </td>
                     <td className="px-6 lg:px-8 py-4 lg:py-5 text-right font-mono font-bold text-gray-700 text-sm lg:text-base">
-                      {formatCurrency(item.arrearAmount)}
+                      {formatCurrency(item.amountDue - item.amountPaid)}
                     </td>
                     <td className="px-6 lg:px-8 py-4 lg:py-5 text-right font-mono font-bold text-orange-500 text-sm lg:text-base">
-                      {formatCurrency(item.fineAmount)}
+                      -
                     </td>
                     <td className="px-6 lg:px-8 py-4 lg:py-5 text-right">
                       <div className="inline-block px-3 lg:px-4 py-1.5 lg:py-2 bg-red-50 text-red-700 rounded-lg lg:rounded-xl font-black font-mono text-xs lg:text-sm">
-                        {formatCurrency(item.arrearAmount + item.fineAmount)}
+                        {formatCurrency(item.amountDue - item.amountPaid)}
                       </div>
                     </td>
                     <td className="px-6 lg:px-8 py-4 lg:py-5 text-right">
@@ -304,13 +286,13 @@ const ContributionArrears = () => {
                     Contribution Period
                   </p>
                   <p className="text-base font-medium text-gray-900">
-                    {new Date(selectedArrear.periodDate).toLocaleDateString(
+                    {selectedArrear.dueDate ? new Date(selectedArrear.dueDate).toLocaleDateString(
                       "en-US",
                       {
                         month: "long",
                         year: "numeric",
                       },
-                    )}
+                    ) : "N/A"}
                   </p>
                 </div>
 
@@ -318,17 +300,17 @@ const ContributionArrears = () => {
                 <div className="bg-gray-50 p-4 rounded-xl space-y-3">
                   <DetailRow
                     label="Arrear Amount"
-                    value={`KSh ${selectedArrear.arrearAmount.toLocaleString()}`}
+                    value={`KSh ${(selectedArrear.amountDue - selectedArrear.amountPaid).toLocaleString()}`}
                   />
                   <DetailRow
                     label="Fine Amount"
-                    value={`KSh ${selectedArrear.fineAmount.toLocaleString()}`}
+                    value={`KSh 0`}
                     highlight
                   />
                   <div className="pt-2 border-t border-gray-200">
                     <DetailRow
                       label="Total Payable"
-                      value={`KSh ${(selectedArrear.arrearAmount + selectedArrear.fineAmount).toLocaleString()}`}
+                      value={`KSh ${(selectedArrear.amountDue - selectedArrear.amountPaid).toLocaleString()}`}
                       bold
                     />
                   </div>

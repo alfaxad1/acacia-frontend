@@ -244,12 +244,15 @@ export interface AccountAdjustment {
   description: string;
 }
 
-export interface ContributionArrearDto {
+export interface BillDto {
   id: number;
-  periodDate: string;
+  memberId: number;
   memberName: string;
-  arrearAmount: number;
-  fineAmount: number;
+  amountDue: number;
+  amountPaid: number;
+  status: string;
+  dueDate?: string;
+  settledAt?: string;
 }
 
 export enum TransactionStatus {

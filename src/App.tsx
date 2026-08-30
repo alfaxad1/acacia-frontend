@@ -29,6 +29,7 @@ import Dividends from "./pages/Dividends";
 import MemberPortfolio from "./pages/MemberPortfolio";
 import CashFlow from "./pages/CashFlow";
 import { LedgerAccounts } from "./pages/LedgerAccounts";
+import Transactions from "./pages/Transactions";
 
 function App() {
   return (
@@ -73,6 +74,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Members />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Transactions />
                 </Layout>
               </ProtectedRoute>
             }
