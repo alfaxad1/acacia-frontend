@@ -25,8 +25,10 @@ import { useState } from "react";
 import { Modal } from "../components/Modal";
 import { TreasuryAnalytics } from "../components/TreasuryAnalytics";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const memberId = Number(localStorage.getItem("memberId"));
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const {
@@ -53,8 +55,6 @@ export function Dashboard() {
   const [topUpAmount, setTopUpAmount] = useState("");
   const [topUpPhone, setTopUpPhone] = useState(userData?.phone || "");
   const [isToppingUp, setIsToppingUp] = useState(false);
-
-
 
   console.log("Summary ", summary);
 
@@ -101,7 +101,13 @@ export function Dashboard() {
   };
 
   if (summaryLoading || surplusLoading) return <LoadingSpinner />;
-  if (summaryError || surplusError) return <ErrorMessage message={summaryError || surplusError || "Something went wrong"} onRetry={refetchSummary} />;
+  if (summaryError || surplusError)
+    return (
+      <ErrorMessage
+        message={summaryError || surplusError || "Something went wrong"}
+        onRetry={refetchSummary}
+      />
+    );
   if (!summary) return null;
 
   const savingsProgress =
@@ -110,34 +116,43 @@ export function Dashboard() {
 
   const handleTopUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topUpAmount || Number(topUpAmount) <= 0) return toast.error("Enter a valid amount");
+    if (!topUpAmount || Number(topUpAmount) <= 0)
+      return toast.error("Enter a valid amount");
 
     setIsToppingUp(true);
     const loadingToast = toast.loading("Initiating STK Push...");
     try {
-
       const token = localStorage.getItem("accessToken");
       // Initiate STK Push without periodId to trigger general Top-Up (waterfall) logic
       const stkRes = await fetch(
-        `${API_URL}/contribution?memberId=${memberId}&phone=${encodeURIComponent(topUpPhone)}&amountToPay=${topUpAmount}`, 
-        { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+        `${API_URL}/contribution?memberId=${memberId}&phone=${encodeURIComponent(topUpPhone)}&amountToPay=${topUpAmount}`,
+        { method: "POST", headers: { Authorization: `Bearer ${token}` } },
       );
-      
+
       let stkData;
       const text = await stkRes.text();
       try {
         stkData = text ? JSON.parse(text) : {};
       } catch (e) {
-        throw new Error(`Unexpected server response (${stkRes.status}): ${text}`);
+        throw new Error(
+          `Unexpected server response (${stkRes.status}): ${text}`,
+        );
       }
-      
-      if (!stkRes.ok) throw new Error(stkData.message || stkData.error || `Failed with status ${stkRes.status}`);
+
+      if (!stkRes.ok)
+        throw new Error(
+          stkData.message ||
+            stkData.error ||
+            `Failed with status ${stkRes.status}`,
+        );
 
       toast.success("STK push sent! Check your phone.", { id: loadingToast });
       setIsTopUpModalOpen(false);
       setTopUpAmount("");
     } catch (err: any) {
-      toast.error(err.message || "Error processing top up", { id: loadingToast });
+      toast.error(err.message || "Error processing top up", {
+        id: loadingToast,
+      });
     } finally {
       setIsToppingUp(false);
     }
@@ -165,15 +180,15 @@ export function Dashboard() {
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <button
             onClick={() => {
-               setTopUpPhone(userData?.phone || "");
-               setIsTopUpModalOpen(true);
+              setTopUpPhone(userData?.phone || "");
+              setIsTopUpModalOpen(true);
             }}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-md active:scale-95"
           >
             <Wallet size={16} />
             Top Up Account
           </button>
-          
+
           <div className="flex bg-gray-100 p-1 rounded-xl w-full sm:w-fit">
             {(["week", "month", "year"] as const).map((period) => (
               <button
@@ -381,7 +396,7 @@ export function Dashboard() {
                 Recent Transactions
               </h2>
               <button
-                onClick={() => navigate('/transactions')}
+                onClick={() => navigate("/transactions")}
                 className="text-xs md:text-sm text-blue-600 font-medium hover:text-blue-700"
               >
                 View All
@@ -624,7 +639,9 @@ export function Dashboard() {
               General Payment
             </p>
             <p className="text-xs text-indigo-700 font-medium">
-              Top up your account balance. This amount will be added to your surplus and automatically applied to any pending or future contributions.
+              Top up your account balance. This amount will be added to your
+              surplus and automatically applied to any pending or future
+              contributions.
             </p>
           </div>
 
