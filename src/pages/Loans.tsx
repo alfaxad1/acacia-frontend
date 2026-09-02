@@ -21,6 +21,7 @@ import {
   PieChart,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { API_URL } from "../config/constant";
 
 const ProgressRing = ({ radius, stroke, progress }: { radius: number; stroke: number; progress: number }) => {
   const normalizedRadius = radius - stroke * 2;
@@ -120,6 +121,42 @@ export function Loans() {
     setRepayPhone("");
   };
 
+  const pollStatus = async (
+    checkoutId: string,
+    toastId: string,
+  ) => {
+    const sseUrl = `${API_URL}/stk/stream/${checkoutId}`;
+    const eventSource = new EventSource(sseUrl);
+
+    // Timeout fallback just in case
+    const timeout = setTimeout(() => {
+      eventSource.close();
+      toast.error("Timed out waiting for STK status.", { id: toastId });
+      setIsSubmitting(false);
+    }, 60000); // 60 seconds
+
+    eventSource.addEventListener("payment-status", (event: any) => {
+      const res = event.data;
+      clearTimeout(timeout);
+      
+      if (res === "COMPLETED") {
+        eventSource.close();
+        toast.success("Repayment Success!", { id: toastId });
+        setIsSubmitting(false);
+        handleCloseModal();
+        refetch();
+      } else if (res === "FAILED" || res === "CANCELLED") {
+        eventSource.close();
+        toast.error("Payment failed or was cancelled", { id: toastId });
+        setIsSubmitting(false);
+      }
+    });
+
+    eventSource.onerror = (err) => {
+      console.warn("SSE connection error", err);
+    };
+  };
+
   const handleRepaySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedLoan || !repayAmount) return;
@@ -140,10 +177,8 @@ export function Loans() {
         throw new Error("No Response received");
       }
 
-      toast.success("Repayment Success!", { id: loadingToast });
-      setIsSubmitting(false);
-      handleCloseModal();
-      refetch();
+      toast.loading("Check your phone for PIN prompt...", { id: loadingToast });
+      await pollStatus(checkoutId, loadingToast);
     } catch (err: any) {
       console.error("Error initiating repayment:", err);
       toast.error(
