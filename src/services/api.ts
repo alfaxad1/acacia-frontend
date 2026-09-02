@@ -250,7 +250,7 @@ export const finesApi = {
     const res = await api.post(`/chama/fines/settle?${params.toString()}`);
     return res.data;
   },
-  delete: (fineId: number) => api.delete(`/chama/fines/${fineId}`),
+  waive: (fineId: number, reason: string = "Waived by officer") => api.patch(`/chama/fines/${fineId}/waive`, { reason }),
 };
 
 export const authApi = {

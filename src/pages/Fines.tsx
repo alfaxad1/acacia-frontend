@@ -9,6 +9,9 @@ import {
   ChevronRight,
   Phone,
   X,
+  Banknote,
+  Ban,
+  RefreshCw,
 } from "lucide-react";
 import { useApi } from "../hooks/useApi";
 import { contributionsApi, finesApi, membersApi } from "../services/api";
@@ -217,16 +220,16 @@ const Fines: React.FC = () => {
     };
   };
 
-  const handleDelete = async (fineId: number) => {
+  const handleWaive = async (fineId: number) => {
     if (
-      !window.confirm("Are you sure you want to permanently delete this fine?")
+      !window.confirm("Are you sure you want to waive this fine?")
     )
       return;
     try {
-      await toast.promise(finesApi.delete(fineId), {
-        loading: "Deleting fine...",
-        success: "Fine deleted successfully!",
-        error: "Failed to delete fine",
+      await toast.promise(finesApi.waive(fineId), {
+        loading: "Waiving fine...",
+        success: "Fine waived successfully!",
+        error: "Failed to waive fine",
       });
       refetchFines();
       setSelectedFine(null);
@@ -388,20 +391,22 @@ const Fines: React.FC = () => {
                         e.stopPropagation();
                         handleOpenSettleModal(fine);
                       }}
-                      className="flex-1 bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 disabled:bg-gray-100 disabled:text-gray-400 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                      title="Settle Fine"
                     >
-                      {isSubmitting ? "Processing..." : "Settle Fine"}
+                      {isSubmitting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Banknote className="w-5 h-5" />}
                     </button>
                   )}
                 {["ADMIN", "CHAIRPERSON", "TREASURER"].includes(role) && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDelete(fine.id);
+                      handleWaive(fine.id);
                     }}
-                    className="flex-1 bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+                    className="flex-1 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    title="Waive Fine"
                   >
-                    Delete
+                    <Ban className="w-5 h-5" />
                   </button>
                 )}
               </div>
@@ -474,20 +479,22 @@ const Fines: React.FC = () => {
                       fine.memberId === userData?.memberId && (
                         <button
                           onClick={() => handleOpenSettleModal(fine)}
-                          className="text-xs bg-indigo-600 text-white px-4 py-1.5 rounded-md hover:bg-indigo-700 shadow-sm"
+                          className="flex items-center justify-center p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+                          title="Settle Fine"
                         >
-                          Settle
+                          <Banknote className="w-4 h-4" />
                         </button>
                       )}
                     {["ADMIN", "CHAIRPERSON", "TREASURER"].includes(role) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(fine.id);
+                          handleWaive(fine.id);
                         }}
-                        className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 shadow-sm"
+                        className="flex items-center justify-center p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                        title="Waive Fine"
                       >
-                        Delete
+                        <Ban className="w-4 h-4" />
                       </button>
                     )}
                   </td>
