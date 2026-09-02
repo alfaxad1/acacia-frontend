@@ -24,7 +24,7 @@ const Fines: React.FC = () => {
   const [isRecordFineTypeModalOpen, setIsRecordFineTypeModalOpen] =
     useState(false);
   const [selectedFine, setSelectedFine] = useState<any>(null);
-  
+
   const [isSettleModalOpen, setIsSettleModalOpen] = useState(false);
   const [fineToSettleObj, setFineToSettleObj] = useState<any>(null);
   const [repayPhone, setRepayPhone] = useState<string>("");
@@ -57,15 +57,13 @@ const Fines: React.FC = () => {
     data: await membersApi.getAll(),
   }));
 
-
-
   useEffect(() => {
     if (userData?.memberId) {
-       // We can use fetch or useApi for surplus but let's just fetch it
-       fetch(`${API_URL}/contribution/surplus/${userData.memberId}`)
-         .then(res => res.json())
-         .then(data => setSurplusBalance(data))
-         .catch(err => console.error("Error fetching surplus:", err));
+      // We can use fetch or useApi for surplus but let's just fetch it
+      fetch(`${API_URL}/contribution/surplus/${userData.memberId}`)
+        .then((res) => res.json())
+        .then((data) => setSurplusBalance(data))
+        .catch((err) => console.error("Error fetching surplus:", err));
     }
   }, [userData?.memberId]);
 
@@ -163,7 +161,10 @@ const Fines: React.FC = () => {
     const loadingToast = toast.loading("Initiating STK Push for fine...");
 
     try {
-      const response = await finesApi.settle(fineToSettleObj.id, repayPhone.trim() || undefined);
+      const response = await finesApi.settle(
+        fineToSettleObj.id,
+        repayPhone.trim() || undefined,
+      );
 
       // Extract the checkoutRequestId from your ResponseHandler
       const checkoutId = response.data?.checkoutRequestId;
@@ -196,7 +197,7 @@ const Fines: React.FC = () => {
     eventSource.addEventListener("payment-status", (event: any) => {
       const res = event.data;
       clearTimeout(timeout);
-      
+
       if (res === "COMPLETED") {
         eventSource.close();
         toast.success("Fine Paid Successfully!", { id: toastId });
@@ -217,7 +218,10 @@ const Fines: React.FC = () => {
   };
 
   const handleDelete = async (fineId: number) => {
-    if (!window.confirm("Are you sure you want to permanently delete this fine?")) return;
+    if (
+      !window.confirm("Are you sure you want to permanently delete this fine?")
+    )
+      return;
     try {
       await toast.promise(finesApi.delete(fineId), {
         loading: "Deleting fine...",
@@ -376,18 +380,25 @@ const Fines: React.FC = () => {
               </div>
 
               <div className="mt-3 pt-3 border-t flex gap-2">
-                {activeTab === FineStatus.UNPAID && fine.memberId === userData?.memberId && (
+                {activeTab === FineStatus.UNPAID &&
+                  fine.memberId === userData?.memberId && (
+                    <button
+                      disabled={isSubmitting}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenSettleModal(fine);
+                      }}
+                      className="flex-1 bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+                    >
+                      {isSubmitting ? "Processing..." : "Settle Fine"}
+                    </button>
+                  )}
+                {["ADMIN", "CHAIRPERSON", "TREASURER"].includes(role) && (
                   <button
-                    disabled={isSubmitting}
-                    onClick={(e) => { e.stopPropagation(); handleOpenSettleModal(fine); }}
-                    className="flex-1 bg-indigo-600 disabled:bg-indigo-300 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
-                  >
-                    {isSubmitting ? "Processing..." : "Settle Fine"}
-                  </button>
-                )}
-                {['ADMIN', 'CHAIRPERSON', 'TREASURER'].includes(role) && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(fine.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(fine.id);
+                    }}
                     className="flex-1 bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
                   >
                     Delete
@@ -468,9 +479,12 @@ const Fines: React.FC = () => {
                           Settle
                         </button>
                       )}
-                    {['ADMIN', 'CHAIRPERSON', 'TREASURER'].includes(role) && (
+                    {["ADMIN", "CHAIRPERSON", "TREASURER"].includes(role) && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(fine.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(fine.id);
+                        }}
                         className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 shadow-sm"
                       >
                         Delete
@@ -846,14 +860,15 @@ const Fines: React.FC = () => {
                   Fine Details
                 </p>
                 <p className="font-black text-indigo-900">
-                  {fineToSettleObj.fineTypeName.includes("_")
-                      ? fineToSettleObj.fineTypeName.replace("_", " ")
-                      : fineToSettleObj.fineTypeName}
+                  {fineToSettleObj.fineTypeName?.includes("_")
+                    ? fineToSettleObj.fineTypeName.replace("_", " ")
+                    : fineToSettleObj.fineTypeName}
                 </p>
                 {surplusBalance > 0 && (
                   <div className="mt-2 p-2 bg-indigo-100 rounded text-xs text-indigo-800 font-bold">
-                    You have a surplus of {formatCurrency(surplusBalance)}. 
-                    Contact an Admin to apply this surplus towards your fine manually, or proceed to pay via M-Pesa.
+                    You have a surplus of {formatCurrency(surplusBalance)}.
+                    Contact an Admin to apply this surplus towards your fine
+                    manually, or proceed to pay via M-Pesa.
                   </div>
                 )}
                 <div className="mt-3 pt-3 border-t border-indigo-100 flex justify-between items-center">
@@ -904,11 +919,7 @@ const Fines: React.FC = () => {
                   disabled={isSubmitting}
                   className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-xl shadow-indigo-200 flex items-center justify-center gap-2 transition-all active:scale-95"
                 >
-                  {isSubmitting ? (
-                    "Processing..."
-                  ) : (
-                    "Pay Fine"
-                  )}
+                  {isSubmitting ? "Processing..." : "Pay Fine"}
                 </button>
               </div>
             </form>

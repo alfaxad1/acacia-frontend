@@ -151,6 +151,7 @@ export interface Loan {
   repaidDate: string;
   penalties?: any[];
   totalPenalties?: number;
+  transactionCost?: number;
 }
 
 export interface FineDto {
