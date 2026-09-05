@@ -1,5 +1,6 @@
 import { ApiResponse, LoanStatus } from "./../types/index";
 import axios from "axios";
+import toast from "react-hot-toast";
 import type {
   Member,
   Loan,
@@ -111,6 +112,12 @@ api.interceptors.response.use(
       console.error("Session expired. Redirecting to login...");
       localStorage.clear();
       window.location.href = "/login"; // Force redirect
+    } else if (error.response?.data?.message) {
+      toast.error(error.response.data.message);
+    } else if (error.response?.data?.error) {
+      toast.error(error.response.data.error);
+    } else if (error.message) {
+      toast.error(error.message);
     }
     return Promise.reject(error);
   },
