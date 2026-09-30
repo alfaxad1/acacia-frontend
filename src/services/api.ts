@@ -233,7 +233,7 @@ export const finesApi = {
     return api.post("/chama/fines/manual", {
       memberId: data.memberId,
       amount: data.amount || 0, // Fallback if amount isn't in FineRequest
-      narrative: "Manual fine",
+      narrative: data.narrative || "Manual fine",
       reference: `MANUAL-${Date.now()}`
     });
   },

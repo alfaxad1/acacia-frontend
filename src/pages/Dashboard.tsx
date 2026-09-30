@@ -55,47 +55,6 @@ export function Dashboard() {
 
   console.log("Summary ", summary);
 
-  const mockData = {
-    recentTransactions: [
-      {
-        type: "Contribution",
-        amount: 5000,
-        date: "2024-01-15",
-        status: "completed",
-      },
-      {
-        type: "Loan Repayment",
-        amount: 2500,
-        date: "2024-01-14",
-        status: "completed",
-      },
-      {
-        type: "Fine Payment",
-        amount: 1000,
-        date: "2024-01-13",
-        status: "completed",
-      },
-      {
-        type: "Contribution",
-        amount: 5000,
-        date: "2024-01-12",
-        status: "pending",
-      },
-    ],
-    upcomingPayments: [
-      { type: "Contribution", amount: 5000, dueDate: "2024-02-01" },
-      { type: "Loan Installment", amount: 2500, dueDate: "2024-02-05" },
-    ],
-    performanceMetrics: {
-      repaymentRate: 95,
-      onTimePayments: 87,
-      savingsGrowth: 12,
-    },
-    notifications: [
-      { message: "Your loan application is being reviewed", type: "info" },
-      { message: "Contribution due in 3 days", type: "warning" },
-    ],
-  };
 
   if (summaryLoading || surplusLoading) return <LoadingSpinner />;
   if (summaryError || surplusError)
@@ -426,14 +385,14 @@ export function Dashboard() {
                   <div className="flex justify-between text-xs md:text-sm mb-1">
                     <span className="text-gray-600">Repayment Rate</span>
                     <span className="font-semibold text-gray-900">
-                      {mockData.performanceMetrics.repaymentRate}%
+                      {summary.performanceMetrics?.repaymentRate ?? 0}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div
                       className="bg-green-500 h-1.5 rounded-full"
                       style={{
-                        width: `${mockData.performanceMetrics.repaymentRate}%`,
+                        width: `${summary.performanceMetrics?.repaymentRate ?? 0}%`,
                       }}
                     />
                   </div>
@@ -442,14 +401,14 @@ export function Dashboard() {
                   <div className="flex justify-between text-xs md:text-sm mb-1">
                     <span className="text-gray-600">On-time Payments</span>
                     <span className="font-semibold text-gray-900">
-                      {mockData.performanceMetrics.onTimePayments}%
+                      {summary.performanceMetrics?.onTimePayments ?? 0}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div
                       className="bg-blue-500 h-1.5 rounded-full"
                       style={{
-                        width: `${mockData.performanceMetrics.onTimePayments}%`,
+                        width: `${summary.performanceMetrics?.onTimePayments ?? 0}%`,
                       }}
                     />
                   </div>
@@ -457,15 +416,15 @@ export function Dashboard() {
                 <div>
                   <div className="flex justify-between text-xs md:text-sm mb-1">
                     <span className="text-gray-600">Savings Growth</span>
-                    <span className="font-semibold text-gray-900">
-                      +{mockData.performanceMetrics.savingsGrowth}%
+                    <span className="font-semibold text-green-600">
+                      +{summary.performanceMetrics?.savingsGrowth ?? 0}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div
                       className="bg-purple-500 h-1.5 rounded-full"
                       style={{
-                        width: `${mockData.performanceMetrics.savingsGrowth * 5}%`,
+                        width: `${(summary.performanceMetrics?.savingsGrowth ?? 0) * 5}%`,
                       }}
                     />
                   </div>
@@ -483,22 +442,26 @@ export function Dashboard() {
               </h2>
             </div>
             <div className="divide-y divide-gray-100">
-              {mockData.upcomingPayments.map((payment, idx) => (
-                <div key={idx} className="p-3 md:p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs md:text-sm font-medium text-gray-900">
-                      {payment.type}
-                    </span>
-                    <span className="text-xs md:text-sm font-bold text-gray-900">
-                      KSh {payment.amount.toLocaleString()}
-                    </span>
+              {summary.upcomingPayments?.length > 0 ? (
+                summary.upcomingPayments.map((payment, idx) => (
+                  <div key={idx} className="p-3 md:p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs md:text-sm font-medium text-gray-900">
+                        {payment.type}
+                      </span>
+                      <span className="text-xs md:text-sm font-bold text-gray-900">
+                        KSh {payment.amount.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] md:text-xs text-amber-600">
+                      <Clock size={10} />
+                      <span>Due {formatDate(payment.dueDate)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] md:text-xs text-amber-600">
-                    <Clock size={10} />
-                    <span>Due {payment.dueDate}</span>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center text-sm text-gray-500 py-4">No upcoming payments</div>
+              )}
             </div>
           </div>
 
@@ -511,18 +474,39 @@ export function Dashboard() {
               </h2>
             </div>
             <div className="p-3 md:p-4 space-y-2">
-              {mockData.notifications.map((notif, idx) => (
-                <div
-                  key={idx}
-                  className={`p-2 md:p-3 rounded-lg text-xs md:text-sm ${
-                    notif.type === "warning"
-                      ? "bg-amber-50 text-amber-700"
-                      : "bg-blue-50 text-blue-700"
-                  }`}
-                >
-                  {notif.message}
-                </div>
-              ))}
+              {summary.notifications?.length > 0 ? (
+                summary.notifications.map((notif, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-2 md:p-3 rounded-lg text-xs md:text-sm ${
+                      notif.type === "warning"
+                        ? "bg-amber-50 text-amber-700"
+                        : notif.type === "error"
+                        ? "bg-red-50 text-red-700"
+                        : notif.type === "success"
+                        ? "bg-green-50 text-green-700"
+                        : "bg-blue-50 text-blue-700"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5">
+                        {notif.type === "warning" ? (
+                          <AlertTriangle size={14} />
+                        ) : notif.type === "error" ? (
+                          <XCircle size={14} />
+                        ) : notif.type === "success" ? (
+                          <Award size={14} />
+                        ) : (
+                          <Smartphone size={14} />
+                        )}
+                      </div>
+                      <span>{notif.message}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-sm text-gray-500 py-4">No notifications</div>
+              )}
             </div>
           </div>
 

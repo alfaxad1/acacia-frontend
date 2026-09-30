@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { Modal } from "./Modal";
 import toast from "react-hot-toast";
 import { API_URL } from "../config/constant";
-import { GripVertical } from "lucide-react";
-
 interface TopUpModalProps {
   isOpen: boolean;
   onClose: () => void;

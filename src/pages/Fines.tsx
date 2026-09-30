@@ -106,7 +106,11 @@ const Fines: React.FC = () => {
     if (formData.fineTypeId === 0)
       return toast.error("Please select a fine type");
 
-    await toast.promise(finesApi.record(formData), {
+    const selectedType = fineTypes?.find((t) => t.id === formData.fineTypeId);
+    const amount = selectedType?.amount || 0;
+    const narrative = selectedType ? (selectedType.name || "Manual fine") : "Manual fine";
+
+    await toast.promise(finesApi.record({ ...formData, amount, narrative }), {
       loading: "Saving...",
       success: "Fine recorded!",
       error: "Error recording fine.",

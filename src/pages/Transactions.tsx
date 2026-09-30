@@ -18,6 +18,7 @@ interface TransactionSummary {
   loanId?: number;
   memberId?: number;
   memberName?: string;
+  fee?: number;
 }
 
 export default function Transactions() {
@@ -131,8 +132,13 @@ export default function Transactions() {
                         {tx.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-semibold text-gray-900 text-right">
+                    <td className={`px-6 py-4 font-semibold text-right ${tx.category === 'TRANSFER' ? 'text-red-600' : 'text-emerald-600'}`}>
                       {formatCurrency(tx.amount)}
+                      {tx.category === 'TRANSFER' && tx.fee ? (
+                        <div className="text-xs text-gray-500 font-normal mt-0.5">
+                          Fee: {formatCurrency(tx.fee)}
+                        </div>
+                      ) : null}
                     </td>
                   </tr>
                 ))}

@@ -10,8 +10,8 @@ import { Play } from "lucide-react";
 import type { LedgerAccountDto, Role } from "../types";
 
 export function LedgerAccounts() {
-  const role: Role = (localStorage.getItem("role") as Role) || "MEMBER";
-  const isAdminOrTreasurer = role === "ADMIN" || role === "TREASURER"; // TREASURER isn't in Role enum by default, but checking just in case
+  const role = (localStorage.getItem("role") as Role | "TREASURER") || "MEMBER";
+  const isAdminOrTreasurer = role === "ADMIN" || role === "TREASURER";
 
   const [isTriggering, setIsTriggering] = useState(false);
 
@@ -40,13 +40,31 @@ export function LedgerAccounts() {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <ErrorMessage message={error.message} />;
+  if (error) return <ErrorMessage message={error} />;
+
+  const safeAccounts = Array.isArray(accounts) ? accounts : [];
 
   const columns = [
-    { key: "code", header: "Code", render: (row: LedgerAccountDto) => row.code },
-    { key: "name", header: "Name", render: (row: LedgerAccountDto) => row.name },
-    { key: "type", header: "Type", render: (row: LedgerAccountDto) => row.type },
-    { key: "fund", header: "Fund", render: (row: LedgerAccountDto) => row.fund },
+    {
+      key: "code",
+      header: "Code",
+      render: (row: LedgerAccountDto) => row.code,
+    },
+    {
+      key: "name",
+      header: "Name",
+      render: (row: LedgerAccountDto) => row.name,
+    },
+    {
+      key: "type",
+      header: "Type",
+      render: (row: LedgerAccountDto) => row.type,
+    },
+    {
+      key: "fund",
+      header: "Fund",
+      render: (row: LedgerAccountDto) => row.fund,
+    },
     {
       key: "balance",
       header: "Balance",
@@ -84,8 +102,8 @@ export function LedgerAccounts() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <Table data={accounts} columns={columns} />
-        {accounts.length === 0 && (
+        <Table data={safeAccounts} columns={columns} />
+        {safeAccounts.length === 0 && (
           <div className="p-8 text-center text-gray-500">
             No ledger accounts found.
           </div>
