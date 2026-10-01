@@ -11,7 +11,6 @@ import {
   Award,
   Activity,
   User,
-  Landmark,
   Smartphone,
 } from "lucide-react";
 import { StatCard } from "../components/StatCard";
@@ -20,11 +19,9 @@ import { ErrorMessage } from "../components/ErrorMessage";
 import { useApi } from "../hooks/useApi";
 import { dashboardApi, contributionApi } from "../services/api";
 import { formatCurrency, formatDate } from "../utils/format";
-import { API_URL } from "../config/constant";
 import { useState } from "react";
 import { TopUpModal } from "../components/TopUpModal";
 import { TreasuryAnalytics } from "../components/TreasuryAnalytics";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 export function Dashboard() {
@@ -171,10 +168,10 @@ export function Dashboard() {
         </div>
         <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-3 md:p-4 rounded-xl">
           <p className="text-[10px] md:text-xs text-amber-600 font-semibold uppercase tracking-wider">
-            Fines
+            Unpaid Fines
           </p>
           <p className="text-lg md:text-2xl font-bold text-amber-900">
-            {formatCurrency(summary.personalStats.totalFinesAmount)}
+            {formatCurrency(summary.totalUnpaidFines)}
           </p>
           <p className="text-[10px] md:text-xs text-amber-600 mt-1">
             {summary.personalStats.numberOfFines} pending
@@ -185,7 +182,7 @@ export function Dashboard() {
             Arrears
           </p>
           <p className="text-lg md:text-2xl font-bold text-red-900">
-            {formatCurrency(summary.personalStats.missedContributionsAmount)}
+            {formatCurrency(summary.totalChamaArrears)}
           </p>
           <p className="text-[10px] md:text-xs text-red-600 mt-1">
             {summary.personalStats.numberOfMissedContributions} entries
