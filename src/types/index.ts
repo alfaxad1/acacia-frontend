@@ -54,8 +54,10 @@ export interface DashboardSummary {
   totalContributions: number;
   recentTransactions: any[];
   personalStats: PersonalStats;
-  totalChamaArrears: number;
+  totalArrears: number;
   totalUnpaidFines: number;
+  unpaidFinesCount: number;
+  totalArrearsCount: number;
 }
 
 export interface PersonalStats {

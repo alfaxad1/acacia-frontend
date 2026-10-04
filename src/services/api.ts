@@ -1,22 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiResponse, LoanStatus } from "./../types/index";
 import axios from "axios";
 import toast from "react-hot-toast";
 import type {
   Member,
   Loan,
-  ContributionPeriod,
   DashboardSummary,
   MemberRequest,
   LoanRequest,
   VoteDecision,
-  FineDto,
-  FineRequest,
   FineStatus,
-  FineType,
-  FineTypeRequest,
   ExtraDto,
   AccountAdjustment,
-  BillDto,
 } from "../types";
 import { API_URL } from "../config/constant";
 
@@ -159,7 +154,9 @@ export interface PlanSummaryDto {
 export const periodsApi = {
   getWithContributions: (page: number = 0, size: number = 10) =>
     api
-      .get<PlanSummaryDto[]>("/chama/contributions/summary", { params: { page, size } })
+      .get<
+        PlanSummaryDto[]
+      >("/chama/contributions/summary", { params: { page, size } })
       .then((res) => res.data),
   create: (data: { date: string }) =>
     api.post("/contribution-period", data).then((res) => res.data),
@@ -173,7 +170,12 @@ export const membersApi = {
 };
 
 export const contributionsApi = {
-  initiateStk: async (periodId: number, memberId: number, phone?: string, amountToPay?: number) => {
+  initiateStk: async (
+    periodId: number,
+    memberId: number,
+    phone?: string,
+    amountToPay?: number,
+  ) => {
     const params = new URLSearchParams({
       periodId: String(periodId),
       memberId: String(memberId),
@@ -227,14 +229,16 @@ export const loansApi = {
 
 export const finesApi = {
   getAll: (status: FineStatus, page: number = 0, size: number = 100) =>
-    api.get<any>("/chama/fines/page", { params: { status, page, size } }).then((res) => res.data.content),
+    api
+      .get<any>("/chama/fines/page", { params: { status, page, size } })
+      .then((res) => res.data.content),
   getTypes: () => api.get<any[]>("/chama/fines/rules").then((res) => res.data),
   record: (data: any) => {
     return api.post("/chama/fines/manual", {
       memberId: data.memberId,
       amount: data.amount || 0, // Fallback if amount isn't in FineRequest
       narrative: data.narrative || "Manual fine",
-      reference: `MANUAL-${Date.now()}`
+      reference: `MANUAL-${Date.now()}`,
     });
   },
   createType: (data: any) => {
@@ -246,7 +250,7 @@ export const finesApi = {
       calculation: data.percentage > 0 ? "PERCENTAGE" : "FIXED",
       trigger: "MANUAL",
       active: true,
-      autoApply: true
+      autoApply: true,
     });
   },
   settle: async (fineId: number, phone?: string) => {
@@ -257,7 +261,8 @@ export const finesApi = {
     const res = await api.post(`/chama/fines/settle?${params.toString()}`);
     return res.data;
   },
-  waive: (fineId: number, reason: string = "Waived by officer") => api.patch(`/chama/fines/${fineId}/waive`, { reason }),
+  waive: (fineId: number, reason: string = "Waived by officer") =>
+    api.patch(`/chama/fines/${fineId}/waive`, { reason }),
 };
 
 export const authApi = {
@@ -324,15 +329,23 @@ export interface CashFlowSummary {
 }
 
 export const cashFlowApi = {
-  movements: (page = 0, size = 15, direction: "ALL" | "IN" | "OUT" | "FEE" = "ALL") =>
+  movements: (
+    page = 0,
+    size = 15,
+    direction: "ALL" | "IN" | "OUT" | "FEE" = "ALL",
+  ) =>
     api
-      .get<{ content: CashFlowRow[]; totalPages: number; totalElements: number; number: number }>(
-        "/chama/cashflow",
-        { params: { page, size, direction } },
-      )
+      .get<{
+        content: CashFlowRow[];
+        totalPages: number;
+        totalElements: number;
+        number: number;
+      }>("/chama/cashflow", { params: { page, size, direction } })
       .then((res) => res.data),
   summary: (months = 6) =>
-    api.get<CashFlowSummary>("/chama/cashflow/summary", { params: { months } }).then((r) => r.data),
+    api
+      .get<CashFlowSummary>("/chama/cashflow/summary", { params: { months } })
+      .then((r) => r.data),
   record: (payload: {
     direction: "IN" | "OUT" | "FEE";
     amount: number;
@@ -354,7 +367,12 @@ export interface DashboardAnalytics {
   activeMembers: number;
   activeLoans: number;
   cashFlowTrend: CashFlowTrendPoint[];
-  equityDistribution: { memberId: number; memberName: string; equityPercentage: number; shareValue: number }[];
+  equityDistribution: {
+    memberId: number;
+    memberName: string;
+    equityPercentage: number;
+    shareValue: number;
+  }[];
   loansDisbursed: number;
   loansRepaid: number;
   recoveryRate: number;
@@ -362,12 +380,23 @@ export interface DashboardAnalytics {
 
 export const analyticsApi = {
   get: (months = 6) =>
-    api.get<DashboardAnalytics>("/dashboard/analytics", { params: { months } }).then((r) => r.data),
+    api
+      .get<DashboardAnalytics>("/dashboard/analytics", { params: { months } })
+      .then((r) => r.data),
 };
 
 export const b2cTransfersApi = {
-  getAll: () => api.get<import("../types").B2cTransferDto[]>("/b2c-transfers").then((res) => res.data),
-  initiate: (amount: number, recipientPhone: string, reason: string, pin: string, memberId: number) => {
+  getAll: () =>
+    api
+      .get<import("../types").B2cTransferDto[]>("/b2c-transfers")
+      .then((res) => res.data),
+  initiate: (
+    amount: number,
+    recipientPhone: string,
+    reason: string,
+    pin: string,
+    memberId: number,
+  ) => {
     const params = new URLSearchParams({
       amount: String(amount),
       recipientPhone,
@@ -375,14 +404,18 @@ export const b2cTransfersApi = {
       pin,
       memberId: String(memberId),
     });
-    return api.post(`/b2c-transfers/initiate?${params.toString()}`).then((res) => res.data);
+    return api
+      .post(`/b2c-transfers/initiate?${params.toString()}`)
+      .then((res) => res.data);
   },
   authorize: (requestId: number, memberId: number, approve: boolean) => {
     const params = new URLSearchParams({
       memberId: String(memberId),
       approve: String(approve),
     });
-    return api.post(`/b2c-transfers/${requestId}/authorize?${params.toString()}`).then((res) => res.data);
+    return api
+      .post(`/b2c-transfers/${requestId}/authorize?${params.toString()}`)
+      .then((res) => res.data);
   },
 };
 

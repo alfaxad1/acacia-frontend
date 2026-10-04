@@ -174,7 +174,7 @@ export function Dashboard() {
             {formatCurrency(summary.totalUnpaidFines)}
           </p>
           <p className="text-[10px] md:text-xs text-amber-600 mt-1">
-            {summary.personalStats.numberOfFines} pending
+            {summary.unpaidFinesCount} pending
           </p>
         </div>
         <div className="bg-gradient-to-br from-red-50 to-red-100 p-3 md:p-4 rounded-xl">
@@ -182,10 +182,10 @@ export function Dashboard() {
             Arrears
           </p>
           <p className="text-lg md:text-2xl font-bold text-red-900">
-            {formatCurrency(summary.totalChamaArrears)}
+            {formatCurrency(summary.totalArrears)}
           </p>
           <p className="text-[10px] md:text-xs text-red-600 mt-1">
-            {summary.personalStats.numberOfMissedContributions} entries
+            {summary.totalArrearsCount} entries
           </p>
         </div>
       </div>

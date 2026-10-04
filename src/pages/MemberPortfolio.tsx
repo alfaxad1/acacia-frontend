@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { Gavel, HandCoins, PieChart, Wallet } from "lucide-react";
 import { LoadingSpinner } from "../components/LoadingSpinner";
