@@ -79,6 +79,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { name: "Meetings", icon: CalendarDays, path: "/meetings" },
       { name: "Invite members", icon: MailPlus, path: "/invites", adminOnly: true },
+      { name: "Unallocated payments", icon: SlidersHorizontal, path: "/unallocated-payments", adminOnly: true },
       { name: "Payment gateway", icon: Smartphone, path: "/payment-gateway", adminOnly: true },
       { name: "Debits & credits", icon: CreditCard, path: "/account-adjustments", adminOnly: true },
       { name: "Settings", icon: Settings, path: "/settings", adminOnly: true },

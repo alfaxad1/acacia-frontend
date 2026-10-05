@@ -30,6 +30,7 @@ import MemberPortfolio from "./pages/MemberPortfolio";
 import CashFlow from "./pages/CashFlow";
 import { LedgerAccounts } from "./pages/LedgerAccounts";
 import Transactions from "./pages/Transactions";
+import UnallocatedPayments from "./pages/UnallocatedPayments";
 
 function App() {
   return (
@@ -175,6 +176,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <AdjustmentDashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/unallocated-payments"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <UnallocatedPayments />
                 </Layout>
               </ProtectedRoute>
             }
