@@ -12,6 +12,7 @@ import {
   Activity,
   User,
   Smartphone,
+  Landmark,
 } from "lucide-react";
 import { StatCard } from "../components/StatCard";
 import { LoadingSpinner } from "../components/LoadingSpinner";
@@ -36,12 +37,10 @@ export function Dashboard() {
   } = useApi(() => dashboardApi.getSummary(memberId));
 
   const {
-    data: surplusResponse,
     loading: surplusLoading,
     error: surplusError,
   } = useApi(() => contributionApi.getMemberSurplus(memberId));
 
-  const surplus = surplusResponse || 0;
 
   const [selectedPeriod, setSelectedPeriod] = useState<
     "week" | "month" | "year"
@@ -116,13 +115,21 @@ export function Dashboard() {
       </div>
 
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-6">
         <StatCard
           title="Chama Balance"
-          value={formatCurrency(summary.saccoBalance)}
+          value={formatCurrency(summary.chamaBalance)}
           icon={Wallet}
           iconColor="text-green-600"
-          subtitle="Total Account Balance"
+          subtitle="Cash + loans + fines + missed contributions"
+        />
+
+        <StatCard
+          title="Money in Account"
+          value={formatCurrency(summary.saccoBalance)}
+          icon={Landmark}
+          iconColor="text-emerald-600"
+          subtitle="Held in the chama account now"
         />
 
         <StatCard
@@ -439,7 +446,7 @@ export function Dashboard() {
               </h2>
             </div>
             <div className="divide-y divide-gray-100">
-              {summary.upcomingPayments?.length > 0 ? (
+              {summary.upcomingPayments && summary.upcomingPayments.length > 0 ? (
                 summary.upcomingPayments.map((payment, idx) => (
                   <div key={idx} className="p-3 md:p-4">
                     <div className="flex items-center justify-between mb-1">
@@ -471,7 +478,7 @@ export function Dashboard() {
               </h2>
             </div>
             <div className="p-3 md:p-4 space-y-2">
-              {summary.notifications?.length > 0 ? (
+              {summary.notifications && summary.notifications.length > 0 ? (
                 summary.notifications.map((notif, idx) => (
                   <div
                     key={idx}

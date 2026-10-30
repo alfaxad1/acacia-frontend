@@ -14,10 +14,10 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useApi } from "../hooks/useApi";
-import { contributionsApi, finesApi, membersApi } from "../services/api";
+import { finesApi, membersApi } from "../services/api";
 import { formatCurrency, formatDate } from "../utils/format";
 import { API_URL } from "../config/constant";
-import { FineRequest, FineStatus, Role, FineTypeRequest } from "../types";
+import { FineRequest, FineStatus, Role, FineTypeRequest, FineDto } from "../types";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 
@@ -93,12 +93,12 @@ const Fines: React.FC = () => {
 
   const totalUnpaid =
     fines
-      ?.filter((f) => f.status === FineStatus.UNPAID)
-      .reduce((sum, f) => sum + f.amount, 0) || 0;
+      ?.filter((f: FineDto) => f.status === FineStatus.UNPAID)
+      .reduce((sum: number, f: FineDto) => sum + f.amount, 0) || 0;
   const totalPaid =
     fines
-      ?.filter((f) => f.status === FineStatus.PAID)
-      .reduce((sum, f) => sum + f.amount, 0) || 0;
+      ?.filter((f: FineDto) => f.status === FineStatus.PAID)
+      .reduce((sum: number, f: FineDto) => sum + f.amount, 0) || 0;
 
   const handleRecordFine = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,7 +337,7 @@ const Fines: React.FC = () => {
 
       {/* Mobile View: Card Layout */}
       <div className="block md:hidden space-y-3">
-        {fines?.map((fine) => (
+        {fines?.map((fine: FineDto) => (
           <div
             key={fine.id}
             className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
@@ -451,7 +451,7 @@ const Fines: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {fines?.map((fine) => (
+              {fines?.map((fine: FineDto) => (
                 <tr
                   key={fine.id}
                   className="hover:bg-gray-50 transition-colors"

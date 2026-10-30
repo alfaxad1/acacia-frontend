@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Search } from "lucide-react";
 import { transactionsApi } from "../services/api";
@@ -23,7 +23,7 @@ interface TransactionSummary {
 
 export default function Transactions() {
   const [page, setPage] = useState(0);
-  const [size, setSize] = useState(15);
+  const [size] = useState(15);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
@@ -154,7 +154,7 @@ export default function Transactions() {
 
         <div className="border-t border-gray-100">
           <Pagination
-            currentPage={page}
+            page={page}
             totalPages={totalPages}
             onPageChange={setPage}
           />

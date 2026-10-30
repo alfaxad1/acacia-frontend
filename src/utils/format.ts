@@ -5,7 +5,8 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function formatDate(date: string): string {
+export function formatDate(date?: string | null): string {
+  if (!date) return "";
   return new Date(date).toLocaleDateString('en-KE', {
     year: 'numeric',
     month: 'short',
@@ -13,7 +14,8 @@ export function formatDate(date: string): string {
   });
 }
 
-export function formatDateTime(date: string): string {
+export function formatDateTime(date?: string | null): string {
+  if (!date) return "";
   return new Date(date).toLocaleString('en-KE', {
     year: 'numeric',
     month: 'short',

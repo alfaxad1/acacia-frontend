@@ -45,6 +45,7 @@ export enum FineStatus {
 }
 
 export interface DashboardSummary {
+  chamaBalance: number;
   saccoBalance: number;
   totalLoansIssued: number;
   activeLoans: number;
@@ -58,6 +59,13 @@ export interface DashboardSummary {
   totalUnpaidFines: number;
   unpaidFinesCount: number;
   totalArrearsCount: number;
+  performanceMetrics?: {
+    repaymentRate?: number;
+    onTimePayments?: number;
+    savingsGrowth?: number;
+  };
+  upcomingPayments?: { type: string; amount: number; dueDate: string }[];
+  notifications?: { message: string; type: string }[];
 }
 
 export interface PersonalStats {
@@ -70,6 +78,7 @@ export interface PersonalStats {
   joinDate: string;
   premium: boolean;
   totalMemberContribution: number;
+  surplusBalance?: number;
 }
 
 export interface LoanRequest {
@@ -101,6 +110,7 @@ export interface BillDto {
   amountDue: number;
   amountPaid: number;
   status: string;
+  dueDate?: string;
   settledAt: string | null;
 }
 
@@ -114,6 +124,8 @@ export interface BillGroupDto {
 export interface PlanSummaryDto {
   planId: number;
   planName: string;
+  /** FIXED (target per cycle) or FREE_WILL (contribution days, any amount). */
+  model?: string;
   billGroups: BillGroupDto[];
 }
 
@@ -160,14 +172,17 @@ export interface Loan {
 
 export interface FineDto {
   id: number;
-  memberName: string;
   memberId: number;
+  memberName: string;
   amount: number;
-  date: string;
+  amountPaid?: number;
   status: FineStatus;
-  fineTypeName: string;
-  fineTypeId: number;
-  paidDate: string;
+  narrative?: string;
+  issuedOn?: string;
+  paidOn?: string;
+  createdAt?: string;
+  fineTypeName?: string;
+  fineTypeId?: number;
 }
 
 export interface FineRequest {
@@ -247,17 +262,6 @@ export interface AccountAdjustment {
   date: string;
   type: AdjustmentType;
   description: string;
-}
-
-export interface BillDto {
-  id: number;
-  memberId: number;
-  memberName: string;
-  amountDue: number;
-  amountPaid: number;
-  status: string;
-  dueDate?: string;
-  settledAt?: string;
 }
 
 export enum TransactionStatus {

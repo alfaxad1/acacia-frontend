@@ -62,6 +62,7 @@ export default function ChamaSettings() {
 
         setSetup({
           ...base,
+          paymentProvider: record?.paymentProvider ?? "MPESA",
           otherFines,
           contribution: {
             ...base.contribution!,
@@ -90,7 +91,14 @@ export default function ChamaSettings() {
           },
           lateFine: {
             ...base.lateFine!,
-            enabled: lateRule ? true : record?.finesEnabled ?? base.lateFine!.enabled,
+          // The rule's own active state is the truth: when the chama turned
+          // the late fine off, an inactive rule exists and the master
+          // finesEnabled flag must not switch the toggle back on.
+          enabled: lateRule
+            ? true
+            : rules.some((r: any) => r.trigger === "LATE_CONTRIBUTION")
+            ? false
+            : record?.finesEnabled ?? base.lateFine!.enabled,
             ...(lateRule
               ? {
                   calculation: lateRule.calculation,

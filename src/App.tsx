@@ -17,7 +17,6 @@ import AdjustmentDashboard from "./pages/AdjustmentManager";
 import B2cTransfers from "./pages/B2cTransfers";
 import Meetings from "./pages/Meetings";
 import RegisterChama from "./pages/RegisterChama";
-import MpesaSetup from "./pages/MpesaSetup";
 import PaymentGateway from "./pages/PaymentGateway";
 import Welfare from "./pages/Welfare";
 import MerryGoRound from "./pages/MerryGoRound";

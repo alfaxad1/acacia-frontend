@@ -47,7 +47,14 @@ export function ContributionSection({ value, patch }: Props) {
             >
               <Select
                 value={c.model ?? "FIXED"}
-                onChange={(model) => set({ model: model as typeof c.model })}
+                onChange={(model) =>
+                  set({
+                    model: model as typeof c.model,
+                    // Free-will chamas carry no fixed amount and default to a
+                    // penalty-free fund; switching back restores the default.
+                    ...(model === "FREE_WILL" ? { amount: 0, penaltiesEnabled: false } : {}),
+                  })
+                }
                 options={[
                   { value: "FIXED", label: "Fixed amount each cycle" },
                   { value: "FREE_WILL", label: "Free-will (any amount, any time)" },
@@ -57,15 +64,11 @@ export function ContributionSection({ value, patch }: Props) {
             <Field label="What is it called">
               <TextInput value={c.name} onChange={(name) => set({ name })} placeholder="Monthly contribution" />
             </Field>
-            <Field
-              label={
-                (c.model ?? "FIXED") === "FIXED"
-                  ? "Amount per member (KES)"
-                  : "Suggested amount (KES)"
-              }
-            >
-              <NumberInput value={c.amount} onChange={(amount) => set({ amount })} />
-            </Field>
+            {(c.model ?? "FIXED") === "FIXED" && (
+              <Field label="Amount per member (KES)">
+                <NumberInput value={c.amount} onChange={(amount) => set({ amount })} />
+              </Field>
+            )}
             <Field label="How often">
               <Select
                 value={c.frequency}
@@ -143,31 +146,37 @@ export function ContributionSection({ value, patch }: Props) {
             <Field label="First due date">
               <TextInput type="date" value={c.startDate} onChange={(startDate) => set({ startDate })} />
             </Field>
-            <Field label="Grace days before a fine" hint="0 means a fine the moment it is late">
-              <NumberInput value={c.gracePeriodDays} onChange={(gracePeriodDays) => set({ gracePeriodDays })} />
-            </Field>
-            
+            {(c.model ?? "FIXED") === "FIXED" && (
+              <Field label="Grace days before a fine" hint="0 means a fine the moment it is late">
+                <NumberInput value={c.gracePeriodDays} onChange={(gracePeriodDays) => set({ gracePeriodDays })} />
+              </Field>
+            )}
+
             <div className="space-y-1">
               <label className="text-sm font-semibold text-gray-700">Grace Cutoff Time</label>
               <p className="text-xs text-gray-500 mb-2">Time of day when grace period ends (e.g. 18:00). Leave blank to default to 23:59.</p>
-              <input 
-                type="time" 
-                value={c.graceCutoffTime || ''} 
+              <input
+                type="time"
+                value={c.graceCutoffTime || ''}
                 onChange={(e) => set({ graceCutoffTime: e.target.value })}
                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
               />
             </div>
           </div>
-          <Toggle
-            checked={c.penaltiesEnabled ?? true}
-            onChange={(penaltiesEnabled) => set({ penaltiesEnabled })}
-            label="Fine members who fall behind"
-            description={
-              (c.model ?? "FIXED") === "FIXED"
-                ? "Late bills are penalised using the fine rule you set next."
-                : "Members who contribute nothing in a cycle get a penalty. Turn off for a penalty-free fund."
-            }
-          />
+          {(c.model ?? "FIXED") === "FIXED" && (
+            <Toggle
+              checked={c.penaltiesEnabled ?? true}
+              onChange={(penaltiesEnabled) => set({ penaltiesEnabled })}
+              label="Fine members who fall behind"
+              description="Late bills are penalised using the fine rule you set next."
+            />
+          )}
+          {(c.model ?? "FIXED") === "FREE_WILL" && (
+            <p className="text-xs text-gray-500 px-1">
+              Free-will fund: members contribute any amount on the scheduled days. Missed days are simply
+              recorded - no fines and no contribution blocks.
+            </p>
+          )}
         </div>
       )}
     </div>

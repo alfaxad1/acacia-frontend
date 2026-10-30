@@ -1,25 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
-import { Plus, Eye, Loader2, CreditCard, X, Phone } from "lucide-react";
+import { Eye, Loader2, CreditCard, X, Phone } from "lucide-react";
 import { Table } from "../components/Table";
-import Pagination from "../components/Pagination";
 import { Modal } from "../components/Modal";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { useApi } from "../hooks/useApi";
 import { contributionsApi, periodsApi } from "../services/api";
-import { formatCurrency, formatDateTime, formatDate } from "../utils/format";
-import type { PlanSummaryDto, BillGroupDto, BillDto, Role } from "../types";
+import { formatCurrency, formatDate } from "../utils/format";
+import type { PlanSummaryDto, BillGroupDto } from "../types";
 import toast from "react-hot-toast";
 import { contributionApi } from "../services/api";
 import { API_URL } from "../config/constant";
 
 export function Contributions() {
-  const [selectedGroup, setSelectedGroup] =
-    useState<BillGroupDto | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<BillGroupDto | null>(null);
   const [activePaymentId, setActivePaymentId] = useState<number | null>(null);
   const memberId = Number(localStorage.getItem("memberId"));
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [surplusBalance, setSurplusBalance] = useState(0);
 
   useEffect(() => {
@@ -35,7 +32,7 @@ export function Contributions() {
   const [isStkSubmitting, setIsStkSubmitting] = useState(false);
   const [amountToPay, setAmountToPay] = useState("");
 
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage] = useState(0);
 
   const {
     data: apiResponse,
@@ -47,7 +44,6 @@ export function Contributions() {
     return { data: res };
   });
 
-  const role: Role = (localStorage.getItem("role") as Role) || "MEMBER";
   const plans: PlanSummaryDto[] = (apiResponse as any) || [];
 
   // Find the exact bill by id from the plans
@@ -65,20 +61,24 @@ export function Contributions() {
   const openStkModal = (billId: number) => {
     const bill = getBill(billId);
     if (!bill) return;
-    
+
+    const freeWillDay = (bill.amountDue ?? 0) <= 0;
     const requiredAmount = bill.amountDue - bill.amountPaid;
     let defaultAmount = requiredAmount;
-    
-    if (surplusBalance > 0 && surplusBalance < requiredAmount) {
+
+    if (freeWillDay) {
+      // No target: the member types any amount they want to give.
+      defaultAmount = 0;
+    } else if (surplusBalance > 0 && surplusBalance < requiredAmount) {
         defaultAmount = requiredAmount - surplusBalance;
     } else if (surplusBalance >= requiredAmount) {
-        defaultAmount = requiredAmount; 
+        defaultAmount = requiredAmount;
     }
 
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     setStkPhone(userData?.phone || "");
     setStkPeriodId(billId);
-    setAmountToPay(String(defaultAmount));
+    setAmountToPay(freeWillDay ? "" : String(defaultAmount));
     setIsStkModalOpen(true);
   };
 
@@ -138,7 +138,6 @@ export function Contributions() {
     const timeout = setTimeout(() => {
       eventSource.close();
       toast.error("Timed out waiting for STK status.", { id: toastId });
-      setIsSubmitting(false);
       setActivePaymentId(null);
     }, 60000); // 60 seconds
 
@@ -149,13 +148,11 @@ export function Contributions() {
       if (res === "COMPLETED") {
         eventSource.close();
         toast.success("Contribution Paid!", { id: toastId });
-        setIsSubmitting(false);
         setActivePaymentId(null);
         refetch();
       } else if (res === "FAILED" || res === "CANCELLED") {
         eventSource.close();
         toast.error("Payment failed or was cancelled", { id: toastId });
-        setIsSubmitting(false);
         setActivePaymentId(null);
       }
     });
@@ -169,22 +166,28 @@ export function Contributions() {
     refetch();
   }, [currentPage]);
 
-  const renderColumns = (plan: PlanSummaryDto) => [
+  const renderColumns = (plan: PlanSummaryDto) => {
+    const freeWill = plan.model === "FREE_WILL";
+    return [
     {
       key: "date",
-      header: "Due Date",
+      header: freeWill ? "Contribution Day" : "Due Date",
       render: (g: BillGroupDto) => (
         <div className="font-bold text-gray-900">{formatDate(g.dueDate)}</div>
       ),
     },
-    {
-      key: "required",
-      header: "Target",
-      render: (g: BillGroupDto) => formatCurrency(g.totalTarget),
-    },
+    ...(freeWill
+      ? []
+      : [
+          {
+            key: "required",
+            header: "Target",
+            render: (g: BillGroupDto) => formatCurrency(g.totalTarget),
+          },
+        ]),
     {
       key: "collected",
-      header: "Collected",
+      header: freeWill ? "Given" : "Collected",
       render: (g: BillGroupDto) => {
         const total = g.collected || 0;
         return (
@@ -192,14 +195,16 @@ export function Contributions() {
             <span className="font-bold text-emerald-600">
               {formatCurrency(total)}
             </span>
-            <div className="w-16 h-1 bg-gray-100 rounded-full mt-1 overflow-hidden">
-              <div
-                className="h-full bg-emerald-500"
-                style={{
-                  width: `${Math.min((total / (g.totalTarget || 1)) * 100, 100)}%`,
-                }}
-              />
-            </div>
+            {!freeWill && (
+              <div className="w-16 h-1 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500"
+                  style={{
+                    width: `${Math.min((total / (g.totalTarget || 1)) * 100, 100)}%`,
+                  }}
+                />
+              </div>
+            )}
           </div>
         );
       },
@@ -209,8 +214,8 @@ export function Contributions() {
       header: "",
       render: (g: BillGroupDto) => {
         const myBill = g.bills?.find((c) => c.memberId === memberId);
-        const hasPaid = myBill?.status === "PAID";
         const outstanding = myBill ? myBill.amountDue - myBill.amountPaid : 0;
+        const canContribute = freeWill ? !!myBill : !!(myBill && outstanding > 0);
 
         return (
           <div className="flex gap-2 justify-end">
@@ -221,7 +226,7 @@ export function Contributions() {
               <Eye size={18} />
             </button>
 
-            {myBill && outstanding > 0 && (
+            {canContribute && myBill && (
               <button
                 onClick={() => openStkModal(myBill.id)}
                 disabled={activePaymentId === myBill.id}
@@ -239,9 +244,13 @@ export function Contributions() {
       },
     },
   ];
+  };
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} onRetry={refetch} />;
+
+  const activeBill = stkPeriodId ? getBill(stkPeriodId) : null;
+  const activeIsFreeWill = (activeBill?.amountDue ?? 0) <= 0;
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6">
@@ -262,7 +271,10 @@ export function Contributions() {
             <div className="p-6 border-b border-gray-100 bg-gray-50/50">
               <h2 className="text-xl font-bold text-gray-900">{plan.planName}</h2>
             </div>
-            <Table columns={renderColumns(plan)} data={plan.billGroups} />
+            <Table
+              columns={renderColumns(plan)}
+              data={plan.billGroups.map((g) => ({ ...g, id: g.dueDate }))}
+            />
           </div>
         ))}
       </div>
@@ -285,7 +297,9 @@ export function Contributions() {
                     {/* Date row */}
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-0.5">Due Date</p>
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-0.5">
+                          {plan.model === "FREE_WILL" ? "Contribution Day" : "Due Date"}
+                        </p>
                         <p className="text-base font-bold text-gray-900">{formatDate(g.dueDate)}</p>
                       </div>
                       {/* Eye icon */}
@@ -297,7 +311,9 @@ export function Contributions() {
                       </button>
                     </div>
 
-                    {/* Target / Collected */}
+                    {/* Target / Collected - free-will days have no target */}
+                    {plan.model !== "FREE_WILL" && (
+                      <>
                     <div className="flex gap-4">
                       <div className="flex-1 bg-gray-50 rounded-xl p-3">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Target</p>
@@ -316,9 +332,13 @@ export function Contributions() {
                         style={{ width: `${pct}%` }}
                       />
                     </div>
+                      </>
+                    )}
 
-                    {/* Pay button for current member's unpaid bill */}
-                    {myBill && myBill.amountPaid < myBill.amountDue && (
+                    {/* Contribute button for current member */}
+                    {myBill &&
+                      (plan.model === "FREE_WILL" ||
+                        myBill.amountPaid < myBill.amountDue) && (
                       <button
                         onClick={() => openStkModal(myBill.id)}
                         disabled={activePaymentId === myBill.id}
@@ -329,7 +349,7 @@ export function Contributions() {
                         ) : (
                           <>
                             <CreditCard size={16} />
-                            Pay Now
+                            {plan.model === "FREE_WILL" ? "Contribute" : "Pay Now"}
                           </>
                         )}
                       </button>
@@ -394,10 +414,12 @@ export function Contributions() {
               {/* Info box */}
               <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100">
                 <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">
-                  Weekly Contribution
+                  {activeIsFreeWill ? "Free-will Contribution" : "Weekly Contribution"}
                 </p>
                 <p className="text-xs text-emerald-700 font-medium mb-2">
-                  An STK Push will be sent to the number below. You can also pay more to add to your surplus.
+                  {activeIsFreeWill
+                    ? "An STK Push will be sent to the number below. Contribute any amount you wish."
+                    : "An STK Push will be sent to the number below. You can also pay more to add to your surplus."}
                 </p>
                 {surplusBalance > 0 && (
                   <div className="mt-2 p-2 bg-emerald-100 rounded text-xs text-emerald-800 font-bold">

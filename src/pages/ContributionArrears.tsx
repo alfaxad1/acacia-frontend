@@ -37,7 +37,7 @@ const ContributionArrears = () => {
   }, []);
 
   const filteredData = data.filter((item) =>
-    item.memberName.toLowerCase().includes(searchTerm.toLowerCase()),
+    (item.memberName ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const totalArrears = filteredData.reduce(

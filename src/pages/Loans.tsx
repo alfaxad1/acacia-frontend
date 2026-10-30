@@ -14,10 +14,8 @@ import {
   Loader2,
   CheckCircle2,
   Clock,
-  ChevronRight,
   Phone,
   Plus,
-  DollarSign,
   PieChart,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -71,8 +69,6 @@ export function Loans() {
 
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [selectedLoanDetails, setSelectedLoanDetails] = useState<Loan | null>(null);
-  const [loanRepayments, setLoanRepayments] = useState<any[]>([]);
-  const [isLoadingRepayments, setIsLoadingRepayments] = useState(false);
   const [repayAmount, setRepayAmount] = useState<string>("");
   const [repayPhone, setRepayPhone] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,20 +87,6 @@ export function Loans() {
     refetch();
   }, [activeTab]);
 
-  useEffect(() => {
-    if (selectedLoanDetails) {
-      setIsLoadingRepayments(true);
-      loansApi.getLoanRepayments(selectedLoanDetails.id)
-        .then(setLoanRepayments)
-        .catch((err) => {
-          console.error("Failed to fetch repayments:", err);
-          setLoanRepayments([]);
-        })
-        .finally(() => setIsLoadingRepayments(false));
-    } else {
-      setLoanRepayments([]);
-    }
-  }, [selectedLoanDetails]);
 
   const handleOpenModal = (loan: Loan) => {
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
