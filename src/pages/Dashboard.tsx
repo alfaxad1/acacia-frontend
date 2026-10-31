@@ -36,11 +36,9 @@ export function Dashboard() {
     refetch: refetchSummary,
   } = useApi(() => dashboardApi.getSummary(memberId));
 
-  const {
-    loading: surplusLoading,
-    error: surplusError,
-  } = useApi(() => contributionApi.getMemberSurplus(memberId));
-
+  const { loading: surplusLoading, error: surplusError } = useApi(() =>
+    contributionApi.getMemberSurplus(memberId),
+  );
 
   const [selectedPeriod, setSelectedPeriod] = useState<
     "week" | "month" | "year"
@@ -50,7 +48,6 @@ export function Dashboard() {
   const [isTopUpModalOpen, setIsTopUpModalOpen] = useState(false);
 
   console.log("Summary ", summary);
-
 
   if (summaryLoading || surplusLoading) return <LoadingSpinner />;
   if (summaryError || surplusError)
@@ -86,7 +83,7 @@ export function Dashboard() {
 
         {/* Top Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <button
+          {/* <button
             onClick={() => {
               setIsTopUpModalOpen(true);
             }}
@@ -94,7 +91,7 @@ export function Dashboard() {
           >
             <Wallet size={16} />
             Top Up Account
-          </button>
+          </button> */}
 
           <div className="flex bg-gray-100 p-1 rounded-xl w-full sm:w-fit">
             {(["week", "month", "year"] as const).map((period) => (
@@ -446,7 +443,8 @@ export function Dashboard() {
               </h2>
             </div>
             <div className="divide-y divide-gray-100">
-              {summary.upcomingPayments && summary.upcomingPayments.length > 0 ? (
+              {summary.upcomingPayments &&
+              summary.upcomingPayments.length > 0 ? (
                 summary.upcomingPayments.map((payment, idx) => (
                   <div key={idx} className="p-3 md:p-4">
                     <div className="flex items-center justify-between mb-1">
@@ -464,7 +462,9 @@ export function Dashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-center text-sm text-gray-500 py-4">No upcoming payments</div>
+                <div className="text-center text-sm text-gray-500 py-4">
+                  No upcoming payments
+                </div>
               )}
             </div>
           </div>
@@ -486,10 +486,10 @@ export function Dashboard() {
                       notif.type === "warning"
                         ? "bg-amber-50 text-amber-700"
                         : notif.type === "error"
-                        ? "bg-red-50 text-red-700"
-                        : notif.type === "success"
-                        ? "bg-green-50 text-green-700"
-                        : "bg-blue-50 text-blue-700"
+                          ? "bg-red-50 text-red-700"
+                          : notif.type === "success"
+                            ? "bg-green-50 text-green-700"
+                            : "bg-blue-50 text-blue-700"
                     }`}
                   >
                     <div className="flex items-start gap-2">
@@ -509,7 +509,9 @@ export function Dashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-center text-sm text-gray-500 py-4">No notifications</div>
+                <div className="text-center text-sm text-gray-500 py-4">
+                  No notifications
+                </div>
               )}
             </div>
           </div>
