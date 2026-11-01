@@ -7,6 +7,7 @@ import {
   Gavel,
   Plus,
   ChevronRight,
+  User,
   Phone,
   X,
   Banknote,
@@ -60,6 +61,11 @@ const Fines: React.FC = () => {
     data: await membersApi.getAll(),
   }));
 
+  const [memberFilter, setMemberFilter] = useState<number | "all">("all");
+  const visibleFines = (fines ?? []).filter(
+    (f: FineDto) => memberFilter === "all" || f.memberId === memberFilter,
+  );
+
   useEffect(() => {
     if (userData?.memberId) {
       // We can use fetch or useApi for surplus but let's just fetch it
@@ -92,12 +98,12 @@ const Fines: React.FC = () => {
   }, [fineTypes, formData.fineTypeId]);
 
   const totalUnpaid =
-    fines
-      ?.filter((f: FineDto) => f.status === FineStatus.UNPAID)
+    visibleFines
+      .filter((f: FineDto) => f.status === FineStatus.UNPAID)
       .reduce((sum: number, f: FineDto) => sum + f.amount, 0) || 0;
   const totalPaid =
-    fines
-      ?.filter((f: FineDto) => f.status === FineStatus.PAID)
+    visibleFines
+      .filter((f: FineDto) => f.status === FineStatus.PAID)
       .reduce((sum: number, f: FineDto) => sum + f.amount, 0) || 0;
 
   const handleRecordFine = async (e: React.FormEvent) => {
@@ -301,6 +307,27 @@ const Fines: React.FC = () => {
         </button>
       </div>
 
+      {/* Member Filter */}
+      <div className="flex items-center gap-2">
+        <User className="w-4 h-4 text-gray-400" />
+        <select
+          value={memberFilter === "all" ? "all" : String(memberFilter)}
+          onChange={(e) =>
+            setMemberFilter(
+              e.target.value === "all" ? "all" : Number(e.target.value),
+            )
+          }
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+        >
+          <option value="all">All members</option>
+          {members?.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.fullName}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-3 sm:gap-4">
         {activeTab === FineStatus.UNPAID && (
@@ -337,7 +364,7 @@ const Fines: React.FC = () => {
 
       {/* Mobile View: Card Layout */}
       <div className="block md:hidden space-y-3">
-        {fines?.map((fine: FineDto) => (
+        {visibleFines.map((fine: FineDto) => (
           <div
             key={fine.id}
             className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
@@ -451,7 +478,7 @@ const Fines: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {fines?.map((fine: FineDto) => (
+              {visibleFines.map((fine: FineDto) => (
                 <tr
                   key={fine.id}
                   className="hover:bg-gray-50 transition-colors"

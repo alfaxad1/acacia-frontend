@@ -24,6 +24,7 @@ import {
   BarChart3,
   ArrowLeftRight,
   BookOpen,
+  ScrollText,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -83,6 +84,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
       { name: "Payment gateway", icon: Smartphone, path: "/payment-gateway", adminOnly: true },
       { name: "Debits & credits", icon: CreditCard, path: "/account-adjustments", adminOnly: true },
       { name: "Settings", icon: Settings, path: "/settings", adminOnly: true },
+      { name: "Audit log", icon: ScrollText, path: "/audit-logs", adminOnly: true },
     ],
   },
 ];

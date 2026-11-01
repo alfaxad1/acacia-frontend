@@ -30,6 +30,7 @@ import CashFlow from "./pages/CashFlow";
 import { LedgerAccounts } from "./pages/LedgerAccounts";
 import Transactions from "./pages/Transactions";
 import UnallocatedPayments from "./pages/UnallocatedPayments";
+import AuditLogs from "./pages/AuditLogs";
 
 function App() {
   return (
@@ -240,6 +241,16 @@ function App() {
             }
           />
           <Route path="/mpesa-setup" element={<Navigate to="/payment-gateway" replace />} />
+          <Route
+            path="/audit-logs"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AuditLogs />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/invites"
             element={

@@ -434,3 +434,37 @@ export const transactionsApi = {
       })
       .then((res) => res.data),
 };
+
+export interface AuditLogDto {
+  id: number;
+  actorId: number | null;
+  actorName: string | null;
+  action: string;
+  category: string;
+  description: string;
+  entityType: string | null;
+  entityId: number | null;
+  ipAddress: string | null;
+  metadata: string | null;
+  occurredAt: string;
+}
+
+export const auditApi = {
+  getAll: (
+    page = 0,
+    size = 20,
+    filters: {
+      category?: string;
+      action?: string;
+      search?: string;
+      from?: string;
+      to?: string;
+    } = {}
+  ) =>
+    api
+      .get<import("../types").ApiResponse<AuditLogDto[]>>("/audit-logs", {
+        params: { page, size, ...filters },
+      })
+      .then((res) => res.data),
+};
+
