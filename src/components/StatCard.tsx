@@ -14,8 +14,8 @@ interface StatCardProps {
 export function StatCard({
   title,
   value,
-  icon: Icon,
-  iconColor = "text-brand-700",
+  // icon: Icon,
+  // iconColor = "text-brand-700",
   trend,
   trendLabel,
   subtitle,
@@ -32,11 +32,13 @@ export function StatCard({
             {title}
           </p>
 
-          <p className="mt-1.5 truncate font-display text-xl font-bold text-gray-900 sm:text-2xl">
+          <p className="mt-1.5 text-lg font-bold text-gray-900 sm:text-2xl">
             {value}
           </p>
 
-          {subtitle && <p className="mt-1 truncate text-xs text-gray-500">{subtitle}</p>}
+          {subtitle && (
+            <p className="mt-1 truncate text-xs text-gray-500">{subtitle}</p>
+          )}
 
           {(trendDisplay || trendLabel) && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -46,11 +48,17 @@ export function StatCard({
                     isTrendPositive ? "text-brand-600" : "text-red-600"
                   }`}
                 >
-                  {isTrendPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                  {isTrendPositive ? (
+                    <ArrowUpRight size={14} />
+                  ) : (
+                    <ArrowDownRight size={14} />
+                  )}
                   {trendDisplay}%
                 </span>
               )}
-              {trendLabel && <span className="text-[10px] text-gray-400">{trendLabel}</span>}
+              {trendLabel && (
+                <span className="text-[10px] text-gray-400">{trendLabel}</span>
+              )}
             </div>
           )}
 
@@ -64,9 +72,11 @@ export function StatCard({
           )}
         </div>
 
-        <div className={`shrink-0 rounded-2xl bg-brand-50 p-2.5 sm:p-3 ${iconColor}`}>
+        {/* <div
+          className={`shrink-0 rounded-2xl bg-brand-50 p-2.5 sm:p-3 ${iconColor}`}
+        >
           <Icon size={20} />
-        </div>
+        </div> */}
       </div>
     </div>
   );
