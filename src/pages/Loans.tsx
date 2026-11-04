@@ -5,7 +5,7 @@ import { Modal } from "../components/Modal";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { useApi } from "../hooks/useApi";
-import { loansApi } from "../services/api";
+import { loansApi, membersApi } from "../services/api";
 import { formatCurrency, formatDate, getStatusColor } from "../utils/format";
 import { LoanStatus, type Loan } from "../types";
 import {
@@ -17,6 +17,7 @@ import {
   Phone,
   Plus,
   PieChart,
+  User,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { API_URL } from "../config/constant";
@@ -82,6 +83,17 @@ export function Loans() {
     error,
     refetch,
   } = useApi(() => loansApi.getAll(activeTab));
+
+  const { data: members } = useApi(async () => ({
+    data: await membersApi.getAll(),
+  }));
+
+  const [memberFilter, setMemberFilter] = useState<number | "all">("all");
+
+  const visibleLoans =
+    memberFilter === "all"
+      ? loans
+      : loans?.filter((l) => l.memberId === memberFilter);
 
   useEffect(() => {
     refetch();
@@ -367,6 +379,27 @@ export function Loans() {
         </div>
       </div>
 
+      {/* Member Filter */}
+      <div className="flex items-center gap-2">
+        <User className="w-4 h-4 text-gray-400" />
+        <select
+          value={memberFilter === "all" ? "all" : String(memberFilter)}
+          onChange={(e) =>
+            setMemberFilter(
+              e.target.value === "all" ? "all" : Number(e.target.value),
+            )
+          }
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+        >
+          <option value="all">All members</option>
+          {members?.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.fullName}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {loading && (
         <div className="py-20 flex justify-center">
           <LoadingSpinner />
@@ -382,7 +415,7 @@ export function Loans() {
         <>
           {/* Mobile View */}
           <div className="block md:hidden space-y-4">
-            {loans?.map((loan) => {
+            {visibleLoans?.map((loan) => {
               const progress = loan.totalPayableAmount > 0 ? ((loan.paidAmount || 0) / loan.totalPayableAmount) * 100 : 0;
               
               return (
@@ -476,12 +509,12 @@ export function Loans() {
           {/* Desktop View: Table */}
           <div className="hidden md:block bg-white rounded-3xl shadow-card border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
-              <Table columns={columns} data={loans || []} onRowClick={(loan) => setSelectedLoanDetails(loan)} />
+              <Table columns={columns} data={visibleLoans || []} onRowClick={(loan) => setSelectedLoanDetails(loan)} />
             </div>
           </div>
 
           {/* Empty States */}
-          {loans?.length === 0 && (
+          {visibleLoans?.length === 0 && (
             <div className="p-16 flex flex-col items-center justify-center bg-white rounded-3xl border border-gray-100 shadow-sm mt-6">
               <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                 <PieChart size={32} className="text-gray-300" />

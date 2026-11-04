@@ -10,7 +10,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { BillDto } from "../types";
-import { arrearsApi } from "../services/api";
+import { arrearsApi, membersApi } from "../services/api";
 import { formatCurrency, formatDate } from "../utils/format";
 
 const ContributionArrears = () => {
@@ -19,6 +19,15 @@ const ContributionArrears = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedArrear, setSelectedArrear] =
     useState<BillDto | null>(null);
+  const [members, setMembers] = useState<Array<{ id: number; fullName: string }>>([]);
+  const [memberFilter, setMemberFilter] = useState<number | "all">("all");
+
+  useEffect(() => {
+    membersApi
+      .getAll()
+      .then((res) => setMembers(res as Array<{ id: number; fullName: string }>))
+      .catch(() => setMembers([]));
+  }, []);
 
   const fetchArrears = async () => {
     setLoading(true);
@@ -36,8 +45,10 @@ const ContributionArrears = () => {
     fetchArrears();
   }, []);
 
-  const filteredData = data.filter((item) =>
-    (item.memberName ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredData = data.filter(
+    (item) =>
+      (item.memberName ?? "").toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (memberFilter === "all" || item.memberId === memberFilter),
   );
 
   const totalArrears = filteredData.reduce(
@@ -90,20 +101,41 @@ const ContributionArrears = () => {
           </div>
         </div>
 
-        {/* Search Bar - Mobile Optimized */}
+        {/* Search + Member Filter - Mobile Optimized */}
         <div className="bg-white rounded-t-2xl sm:rounded-t-[2rem] border-x border-t border-gray-100 p-4 sm:p-6">
-          <div className="relative">
-            <Search
-              className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400"
-              size={16}
-            />
-            <input
-              type="text"
-              placeholder="Search member name..."
-              className="w-full pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-gray-50 border-none rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-sm sm:text-base transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div className="relative flex-1">
+              <Search
+                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={16}
+              />
+              <input
+                type="text"
+                placeholder="Search member name..."
+                className="w-full pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-gray-50 border-none rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-sm sm:text-base transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-gray-400 shrink-0" />
+              <select
+                value={memberFilter === "all" ? "all" : String(memberFilter)}
+                onChange={(e) =>
+                  setMemberFilter(
+                    e.target.value === "all" ? "all" : Number(e.target.value),
+                  )
+                }
+                className="w-full sm:w-auto rounded-xl bg-gray-50 px-3 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              >
+                <option value="all">All members</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.fullName}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
