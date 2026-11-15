@@ -84,6 +84,18 @@ npm run build
 
 The built files will be in the `dist` directory.
 
+## Install as an app
+
+The production build includes an installable web app manifest, app icons, and a
+service worker that caches the frontend shell for offline navigation. Use the
+“Download the app” button where available, or the browser menu on platforms
+that provide manual installation. Installation requires HTTPS in production
+(`localhost` is supported for local testing).
+
+To test the production service worker locally, run `npm run build` followed by
+`npm run preview`. Account data and API requests still require a network
+connection and are not cached offline.
+
 ## API Integration
 
 The frontend connects to the Acacia Backend API. Ensure the following endpoints are available:

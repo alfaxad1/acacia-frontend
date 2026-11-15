@@ -26,6 +26,7 @@ import {
   BookOpen,
   ScrollText,
 } from "lucide-react";
+import { PwaInstallButton } from "./PwaInstallButton";
 
 interface LayoutProps {
   children: ReactNode;
@@ -225,6 +226,7 @@ export function Layout({ children }: LayoutProps) {
         </nav>
 
         <div className="border-t border-gray-200 p-3">
+          <PwaInstallButton className="btn-secondary mb-3 w-full" />
           <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-3">
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">
               {initials(userData.name)}

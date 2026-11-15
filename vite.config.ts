@@ -8,38 +8,43 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['apple-touch-icon.png'],
       manifest: {
         id: '/',
-        name: 'Acacia Sacco',
-        short_name: 'AcaciaSacco',
-        description: 'Manage your Sacco finances effortlessly.',
-        theme_color: '#ffffff',
+        name: 'Chama Konnect',
+        short_name: 'Chama',
+        description:
+          'Manage your chama contributions, loans, payments and members in one place.',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        background_color: '#f8f8f6',
+        theme_color: '#0f7053',
         icons: [
           {
-            src: 'logo.svg',
+            src: 'app-icon-192.png',
             sizes: '192x192',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
+            type: 'image/png',
+            purpose: 'any',
           },
           {
-            src: 'logo.svg',
+            src: 'app-icon-512.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
+            type: 'image/png',
+            purpose: 'any',
           }
         ],
         screenshots: [
           {
             src: 'screenshot-desktop.png',
-            sizes: '1280x720',
+            sizes: '1365x565',
             type: 'image/png',
             form_factor: 'wide'
           },
           {
             src: 'screenshot-mobile.png',
-            sizes: '720x1280',
-            type: 'image/png'
+            sizes: '814x1600',
+            type: 'image/jpeg'
           }
         ]
       }

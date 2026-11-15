@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { BASE_URL } from "../config/constant";
+import { PwaInstallButton } from "../components/PwaInstallButton";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -124,6 +125,10 @@ export function Login() {
               Register it here
             </Link>
           </p>
+
+          <div className="mt-6 border-t border-gray-200 pt-5">
+            <PwaInstallButton className="btn-secondary w-full" />
+          </div>
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
