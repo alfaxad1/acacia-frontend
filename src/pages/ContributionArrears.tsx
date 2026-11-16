@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import {
   Search,
@@ -9,17 +10,20 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { BillDto } from "../types";
 import { arrearsApi, membersApi } from "../services/api";
 import { formatCurrency, formatDate } from "../utils/format";
+import { API_URL } from "../config/constant";
 
 const ContributionArrears = () => {
   const [data, setData] = useState<BillDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedArrear, setSelectedArrear] =
-    useState<BillDto | null>(null);
-  const [members, setMembers] = useState<Array<{ id: number; fullName: string }>>([]);
+  const [selectedArrear, setSelectedArrear] = useState<BillDto | null>(null);
+  const [members, setMembers] = useState<
+    Array<{ id: number; fullName: string }>
+  >([]);
   const [memberFilter, setMemberFilter] = useState<number | "all">("all");
 
   useEffect(() => {
@@ -32,7 +36,11 @@ const ContributionArrears = () => {
   const fetchArrears = async () => {
     setLoading(true);
     try {
-      const response = await arrearsApi.getArrears(0, 100, searchTerm || undefined);
+      const response = await arrearsApi.getArrears(
+        0,
+        100,
+        searchTerm || undefined,
+      );
       setData(response.data ?? []);
     } catch (error) {
       console.error("Network or Server error", error);
@@ -45,9 +53,62 @@ const ContributionArrears = () => {
     fetchArrears();
   }, []);
 
+  const recordPayment = async (arrear: BillDto) => {
+    if (!arrear.id) return;
+
+    const loadingToast = toast.loading("Initiating stk push...");
+    try {
+      const res = await arrearsApi.payNow(arrear.id);
+
+      const checkoutId = res?.data?.checkoutRequestId;
+      if (checkoutId)
+        throw new Error("Checkout request ID is missing in the response.");
+
+      toast.loading("Check your phone for prompt ...", { id: loadingToast });
+
+      await pollStatus(checkoutId, loadingToast);
+    } catch (error) {
+      console.error("Error recording payment:", error);
+    } finally {
+      toast.dismiss(loadingToast);
+    }
+  };
+
+  const pollStatus = async (checkoutId: string, toastId: string) => {
+    const sseUrl = `${API_URL}/stk/stream/${checkoutId}`;
+    const eventSource = new EventSource(sseUrl);
+
+    const timeout = setTimeout(() => {
+      eventSource.close();
+      toast.error("Timed out waiting for STK status.", { id: toastId });
+    }, 60000); // 60 seconds
+
+    eventSource.addEventListener("payment-status", (event: any) => {
+      const res = event.data;
+      clearTimeout(timeout);
+
+      if (res === "COMPLETED") {
+        eventSource.close();
+        toast.success("Fine Paid Successfully!", { id: toastId });
+        setSelectedArrear(null);
+
+        fetchArrears();
+      } else if (res === "FAILED" || res === "CANCELLED") {
+        eventSource.close();
+        toast.error("Payment failed or was cancelled.", { id: toastId });
+      }
+    });
+
+    eventSource.onerror = (err) => {
+      console.warn("SSE connection error", err);
+    };
+  };
+
   const filteredData = data.filter(
     (item) =>
-      (item.memberName ?? "").toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (item.memberName ?? "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) &&
       (memberFilter === "all" || item.memberId === memberFilter),
   );
 
@@ -174,13 +235,16 @@ const ContributionArrears = () => {
                           {item.memberName}
                         </h3>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {item.dueDate ? new Date(item.dueDate).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "short",
-                              year: "numeric",
-                            },
-                          ) : "N/A"}
+                          {item.dueDate
+                            ? new Date(item.dueDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )
+                            : "N/A"}
                         </p>
                       </div>
                     </div>
@@ -192,7 +256,8 @@ const ContributionArrears = () => {
                     <div className="bg-gray-50 p-2 rounded-lg">
                       <p className="text-[10px] text-gray-500 mb-1">Arrear</p>
                       <p className="text-sm font-bold text-gray-700">
-                        KSh {(item.amountDue - item.amountPaid).toLocaleString()}
+                        KSh{" "}
+                        {(item.amountDue - item.amountPaid).toLocaleString()}
                       </p>
                     </div>
                     <div className="bg-red-50 p-2 rounded-lg">
@@ -318,13 +383,16 @@ const ContributionArrears = () => {
                     Contribution Period
                   </p>
                   <p className="text-base font-medium text-gray-900">
-                    {selectedArrear.dueDate ? new Date(selectedArrear.dueDate).toLocaleDateString(
-                      "en-US",
-                      {
-                        month: "long",
-                        year: "numeric",
-                      },
-                    ) : "N/A"}
+                    {selectedArrear.dueDate
+                      ? new Date(selectedArrear.dueDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )
+                      : "N/A"}
                   </p>
                 </div>
 
@@ -334,11 +402,7 @@ const ContributionArrears = () => {
                     label="Arrear Amount"
                     value={`KSh ${(selectedArrear.amountDue - selectedArrear.amountPaid).toLocaleString()}`}
                   />
-                  <DetailRow
-                    label="Fine Amount"
-                    value={`KSh 0`}
-                    highlight
-                  />
+                  <DetailRow label="Fine Amount" value={`KSh 0`} highlight />
                   <div className="pt-2 border-t border-gray-200">
                     <DetailRow
                       label="Total Payable"
@@ -352,8 +416,7 @@ const ContributionArrears = () => {
                 <div className="flex gap-3 pt-2">
                   <button
                     onClick={() => {
-                      // Handle payment
-                      setSelectedArrear(null);
+                      recordPayment(selectedArrear);
                     }}
                     className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors"
                   >
